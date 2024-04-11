@@ -1,0 +1,3 @@
+package games.studiohummingbird.cultoftheancestormoth
+
+sealed interface RecordType
