@@ -24,7 +24,7 @@ val App = FC<Props> {
     val plugin = experimentalPlugin()
     val pluginData = plugin.toByteArray()
     val pluginDataBase64 = Base64.encode(pluginData)
-    console.log(pluginDataBase64)
+    console.log("base64 encoding of the example plugin", pluginDataBase64)
 
     p {
         +"This is an example Skyrim plugin, created by Zymus, generated using Kotlin Multiplatform."
