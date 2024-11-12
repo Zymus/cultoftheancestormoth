@@ -26,8 +26,11 @@ kotlin {
 
     sourceSets {
         jsMain.dependencies {
+            implementation(libs.kotlin.wrappers.css)
             implementation(libs.kotlin.wrappers.react)
             implementation(libs.kotlin.wrappers.react.dom)
+            implementation(project(":model"))
+            implementation(project(":serialization"))
         }
     }
 }

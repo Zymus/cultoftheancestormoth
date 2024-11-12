@@ -1,0 +1,3 @@
+package games.studiohummingbird.cultoftheancestormoth
+
+object Record

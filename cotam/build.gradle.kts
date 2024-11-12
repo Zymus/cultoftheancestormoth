@@ -1,7 +1,5 @@
 plugins {
-    //alias(libs.plugins.kotlinMultiplatform)
-    application
-    kotlin("jvm") version "2.0.10"
+    alias(libs.plugins.kotlinMultiplatform)
 }
 
 repositories {
@@ -9,20 +7,14 @@ repositories {
     mavenCentral()
 }
 
-/*kotlin {
+kotlin {
     jvm()
 
     sourceSets {
         jvmMain.dependencies {
-            implementation("com.github.ajalt.clikt:clikt:5.0.1")
+            implementation(libs.clikt)
+            implementation(project(":model"))
+            implementation(project(":serialization"))
         }
     }
-}*/
-
-dependencies {
-    implementation("com.github.ajalt.clikt:clikt:5.0.1")
-}
-
-application {
-    mainClass = "games.studiohummingbird.cultoftheancestormoth.CotamKt"
 }

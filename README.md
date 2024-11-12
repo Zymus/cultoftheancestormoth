@@ -21,6 +21,9 @@ cotam add ALCH
 cotam find IronDagger
 cotam publish SkoomaRefinement nexus
 
+cotam adept read SkoomaRefinement
+cotam librarian catalog
+cotam drudge CBBE
 
 ## Web
 A web interface for creating plugin files.
@@ -29,3 +32,4 @@ privact concerns about what data is transmitted to the server,
 because there won't be any.
 Just a tool that can be used in the client.
 Will use Kotlin MPP, Kotlin/JS probably, maybe wasm if I get that far.
+Uses TextDecoder

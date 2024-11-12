@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    kotlin("plugin.serialization") version "1.9.23"
+    alias(libs.plugins.kotlinSerialization)
 }
 
 repositories {
@@ -12,5 +12,24 @@ kotlin {
     js {
         browser()
         binaries.executable()
+    }
+    jvm()
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.arrow.core)
+            implementation(project(":model"))
+        }
+
+        jvmMain.dependencies {
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.arrow.core)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.kotlin.wrappers.js)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.arrow.core)
+        }
     }
 }

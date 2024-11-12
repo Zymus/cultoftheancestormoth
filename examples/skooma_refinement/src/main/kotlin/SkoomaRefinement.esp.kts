@@ -2,11 +2,6 @@
 // skooma refining alchemy table workbench
 // skooma workbench keyword
 
-abstract class ConstructibleObject
+val FineSkooma by cobj {
 
-object FineSkooma : ConstructibleObject {
-    val ingredients = mapOf(
-        "moonsugar" to 1,
-        "deathbell" to 1
-    )
 }

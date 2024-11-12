@@ -4,19 +4,28 @@ compose-plugin = "1.6.2"
 kotlin = "2.0.10"
 kotlinx-coroutines-core = "1.8.1"
 kotlinx-serialization-core = "1.6.3"
+kotlin-wrapper-js = "1.0.0-pre.828"
 kotlin-wrapper-react = "18.2.0-pre.733"
+kotlin-wrapper-css = "1.0.0-pre.825"
+clikt = "5.0.1"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-core-serialization = { module = "io.arrow-kt:arrow-core-serialization", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization-core" }
 
-# React
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+
+# Kotlin Wrappers
+kotlin-wrappers-js = { module = "org.jetbrains.kotlin-wrappers:kotlin-js", version.ref = "kotlin-wrapper-js" }
 kotlin-wrappers-react = { module = "org.jetbrains.kotlin-wrappers:kotlin-react", version.ref = "kotlin-wrapper-react" }
 kotlin-wrappers-react-dom = { module = "org.jetbrains.kotlin-wrappers:kotlin-react-dom", version.ref = "kotlin-wrapper-react" }
+kotlin-wrappers-css = { module = "org.jetbrains.kotlin-wrappers:kotlin-css", version.ref = "kotlin-wrapper-css" }
 
 [plugins]
 compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

@@ -1,7 +1,8 @@
 rootProject.name = "cultoftheancestormoth"
 
 include(
-    ":cotam"
-//    ":serialization",
-//    ":web"
+    ":cotam",
+    ":model",
+    ":serialization",
+    ":web"
 )
