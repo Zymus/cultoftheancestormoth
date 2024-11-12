@@ -7,7 +7,9 @@ import react.Props
 import react.create
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.ul
 import web.dom.document
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -40,6 +42,31 @@ val App = FC<Props> {
     p {
         +"This is highly experimental at the moment. The mods created here should be tested and verified before use."
         +"Not that there's anything freaky, just a lot of bare wires, so be careful."
+    }
+    p {
+        +"The example mod contains the following records"
+        ul {
+            li {
+                +"GameSettings (GMST)"
+                ul {
+                    plugin.gameSettings.forEach {
+                        li {
+                            +it.name
+                        }
+                    }
+                }
+            }
+            li {
+                +"Potions (ALCH)"
+                ul {
+                    plugin.potions.forEach {
+                        li {
+                            +it.name
+                        }
+                    }
+                }
+            }
+        }
     }
     a {
         +"Download example mod"
