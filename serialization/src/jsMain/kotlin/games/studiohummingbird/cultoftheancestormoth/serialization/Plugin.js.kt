@@ -11,7 +11,7 @@ actual fun Plugin.toByteArray(): ByteArray {
         ))
         ),
         field("CNAM", "Zymus".toZStringByteArray()),
-        field("SNAM", "Creation Kotlin Plugin Description".toZStringByteArray()),
+        field("SNAM", "Cult of the Ancestor Moth Example".toZStringByteArray()),
         fold(listOf(
             field("MAST", "Skyrim.esm".toZStringByteArray()),
             field("DATA", 0.toULong().toByteArray())
