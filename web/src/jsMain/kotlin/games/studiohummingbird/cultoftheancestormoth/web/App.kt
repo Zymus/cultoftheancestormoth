@@ -7,6 +7,7 @@ import react.Props
 import react.create
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.p
 import web.dom.document
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -22,10 +23,23 @@ val App = FC<Props> {
     val pluginData = plugin.toByteArray()
     val pluginDataBase64 = Base64.encode(pluginData)
     console.log(pluginDataBase64)
-    +"Hello, worldaaaaa!"
-    MenuBar()
+
+    p {
+        +"This is an example Skyrim plugin, created by Zymus, generated using Kotlin Multiplatform."
+    }
+    p {
+        +"For more information, visit "
+        a {
+            +"the Github repository"
+            href = "https://www.github.com/Zymus/cultoftheancestormoth"
+        }
+    }
+    p {
+        +"This is highly experimental at the moment. The mods created here should be tested and verified before use."
+        +"Not that there's anything freaky, just a lot of bare wires, so be careful."
+    }
     a {
-        +"Download"
+        +"Download example mod"
         download = "example.esp"
         href = "data:application/octet-stream;base64,${pluginDataBase64}"
     }
