@@ -21,7 +21,7 @@ val App = FC<Props> {
     val plugin = experimentalPlugin()
     val pluginData = plugin.toByteArray()
     val pluginDataBase64 = Base64.encode(pluginData)
-    console.log(pluginData)
+    console.log(pluginDataBase64)
     +"Hello, worldaaaaa!"
     MenuBar()
     a {
