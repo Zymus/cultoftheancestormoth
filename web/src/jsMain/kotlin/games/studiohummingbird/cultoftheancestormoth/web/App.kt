@@ -28,7 +28,10 @@ val App = FC<Props> {
         +"This is an example Skyrim plugin, created by Zymus, generated using Kotlin Multiplatform."
     }
     p {
-        +"For more information, visit "
+        +"""
+            It uses a common model project, js browser react project (this page), multiplatform serialization (soon, adapting the jvm bytebuffer code didn't go easily and it looks jank), and a JVM CLI using Clikt.
+            For more information, visit
+        """.trimIndent()
         a {
             +"the Github repository"
             href = "https://www.github.com/Zymus/cultoftheancestormoth"
