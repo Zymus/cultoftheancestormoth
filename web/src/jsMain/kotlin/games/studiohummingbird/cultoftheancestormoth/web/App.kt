@@ -62,6 +62,7 @@ val App = FC<Props> {
                     plugin.potions.forEach {
                         li {
                             +it.editorId
+                            p { +"Effects" }
                             ul {
                                 it.effects?.forEach { effect ->
                                     li {
