@@ -10,8 +10,9 @@ fun experimentalPlugin(): Plugin {
         StringGameSetting("FirstString", "first string")
     ))
 
-    val effects = listOf<Effect>()
-    val effect = Effect("TestEffect", EffectParams(2.6f, 99.toUInt(), 52.toUInt()))
+    val effects = listOf(
+        Effect("TestEffect", EffectParams(2.6f, 99.toUInt(), 52.toUInt()))
+    )
     val potions = Potions(setOf(
         Potion("TestPotionEditorId1", weight = 1.5f, enchantedItem = EnchantedItem(1.toUInt(), 1.toUInt())),
         Potion("TestPotionEditorId2", weight = 2.5f, enchantedItem = EnchantedItem(2.toUInt(), 2.toUInt())),
