@@ -166,6 +166,16 @@ fun Potion.toByteArray()
     val name = field("FULL", name.toZStringByteArray())
     val weight = field("DATA", weight.toByteArray())
     val enchantedItem = field("ENIT", littleEndianByteArray(20))
+    val effectsData = effects?.map {
+        fold(listOf(
+            field("EFID", 0.toUInt().toByteArray()),
+            field("EFIT", fold(listOf(
+                it.effectParams.magnitude.toByteArray(),
+                it.effectParams.areaOfEffect.toByteArray(),
+                it.effectParams.duration.toByteArray()
+            )))
+        ))
+    } ?: emptyList()
 
     return fold(
         listOf(
@@ -173,7 +183,8 @@ fun Potion.toByteArray()
             objectBounds,
             name,
             weight,
-            enchantedItem
+            enchantedItem,
+            fold(effectsData)
         )
     )
 }
