@@ -168,7 +168,7 @@ fun Potion.toByteArray()
     val enchantedItem = field("ENIT", littleEndianByteArray(20))
     val effectsData = effects?.map {
         fold(listOf(
-            field("EFID", 0.toUInt().toByteArray()),
+            field("EFID", it.effectId.toByteArray()),
             field("EFIT", fold(listOf(
                 it.effectParams.magnitude.toByteArray(),
                 it.effectParams.areaOfEffect.toByteArray(),

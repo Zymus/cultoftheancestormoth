@@ -19,7 +19,7 @@ fun main() {
     createRoot(root).render(App.create())
 }
 
-@OptIn(ExperimentalEncodingApi::class)
+@OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
 val App = FC<Props> {
     val plugin = experimentalPlugin()
     val pluginData = plugin.toByteArray()
@@ -66,7 +66,7 @@ val App = FC<Props> {
                             ul {
                                 it.effects?.forEach { effect ->
                                     li {
-                                        +effect.effectId
+                                        +effect.effectId.toHexString()
                                     }
                                 }
                             }

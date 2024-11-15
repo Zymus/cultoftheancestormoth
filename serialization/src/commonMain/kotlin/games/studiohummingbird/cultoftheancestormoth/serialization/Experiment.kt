@@ -2,6 +2,8 @@ package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.recordtypes.*
 
+const val RESTORE_HEALTH_MAGIC_EFFECT_FORM_ID = 0x0003eb15
+
 fun experimentalPlugin(): Plugin {
     val gameSettings = GameSettings(setOf(
         BooleanGameSetting("FirstBoolean", true),
@@ -11,7 +13,7 @@ fun experimentalPlugin(): Plugin {
     ))
 
     val effects = listOf(
-        Effect("TestEffect", EffectParams(2.6f, 99.toUInt(), 52.toUInt()))
+        Effect(RESTORE_HEALTH_MAGIC_EFFECT_FORM_ID.toUInt(), EffectParams(2.6f, 99.toUInt(), 52.toUInt()))
     )
     val potions = Potions(setOf(
         Potion("TestPotionEditorId1", weight = 1.5f, enchantedItem = EnchantedItem(1.toUInt(), 1.toUInt())),

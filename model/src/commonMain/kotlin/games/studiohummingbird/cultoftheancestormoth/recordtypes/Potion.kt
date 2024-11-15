@@ -11,7 +11,7 @@ data class EnchantedItem
 
 data class Effect
 (
-    val effectId: String,//formid; Could this be targeted to Id/REFR<MGEF>?
+    val effectId: UInt,//formid; Could this be targeted to Id/REFR<MGEF>?
     val effectParams: EffectParams,
     val conditions: Conditions? = null,
 )
