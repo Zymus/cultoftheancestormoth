@@ -44,10 +44,6 @@ data class BethesdaByteStream(val size: Int) : AbstractEncoder() {
         put(highInt)
     }
 
-    fun flip() {
-        println("flip")
-    }
-
     fun putFloat(float: Float) = apply {
         putInt(float.toRawBits())
     }
@@ -98,49 +94,42 @@ fun String.toZStringByteArray()
 {
     put(toWindows1252ByteArray())
     put(0)
-    flip()
 }
 
 fun Byte.toByteArray()
         : ByteArray = littleEndianByteArray(1)
 {
     put(this@toByteArray)
-    flip()
 }
 
 fun Short.toByteArray()
         : ByteArray = littleEndianByteArray(2)
 {
     putShort(this@toByteArray)
-    flip()
 }
 
 fun Int.toByteArray()
         : ByteArray = littleEndianByteArray(4)
 {
     putInt(this@toByteArray)
-    flip()
 }
 
 fun Long.toByteArray()
         : ByteArray = littleEndianByteArray(8)
 {
     putLong(this@toByteArray)
-    flip()
 }
 
 fun Float.toByteArray()
         : ByteArray = littleEndianByteArray(4)
 {
     putFloat(this@toByteArray)
-    flip()
 }
 
 fun Double.toByteArray()
         : ByteArray = littleEndianByteArray(8)
 {
     putDouble(this@toByteArray)
-    flip()
 }
 
 fun UByte.toByteArray()
