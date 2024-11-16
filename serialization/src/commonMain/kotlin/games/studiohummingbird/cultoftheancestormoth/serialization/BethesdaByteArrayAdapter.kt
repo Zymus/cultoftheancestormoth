@@ -1,8 +1,12 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.recordtypes.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.modules.SerializersModule
 
-data class BethesdaByteStream(val size: Int) {
+@OptIn(ExperimentalSerializationApi::class)
+data class BethesdaByteStream(val size: Int) : AbstractEncoder() {
     val byteArray = ByteArray(size)
     private var position = 0
 
@@ -44,12 +48,15 @@ data class BethesdaByteStream(val size: Int) {
     }
 
     fun putFloat(float: Float) = apply {
-        putInt(float.toBits())
+        putInt(float.toRawBits())
     }
 
     fun putDouble(double: Double) = apply {
-        putLong(double.toBits())
+        putLong(double.toRawBits())
     }
+
+    override val serializersModule: SerializersModule
+        get() = TODO("Not yet implemented")
 }
 
 fun littleEndianByteArray(size: Int, action: BethesdaByteStream.() -> Unit = {}): ByteArray =

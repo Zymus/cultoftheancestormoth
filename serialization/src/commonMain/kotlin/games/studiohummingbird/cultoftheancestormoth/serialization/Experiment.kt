@@ -13,7 +13,7 @@ fun experimentalPlugin(): Plugin {
     ))
 
     val effects = listOf(
-        Effect(RESTORE_HEALTH_MAGIC_EFFECT_FORM_ID.toUInt(), EffectParams(2.6f, 99.toUInt(), 52.toUInt()))
+        Effect(RESTORE_HEALTH_MAGIC_EFFECT_FORM_ID.toUInt(), EffectParams(2.6f, 0.toUInt(), 0.toUInt()))
     )
     val potions = Potions(setOf(
         Potion("TestPotionEditorId1", weight = 1.5f, enchantedItem = EnchantedItem(1.toUInt(), 1.toUInt())),

@@ -18,18 +18,19 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.arrow.core)
+            implementation(libs.kotlinx.serialization.core)
             implementation(project(":model"))
         }
 
         jvmMain.dependencies {
-            implementation(libs.kotlinx.serialization.core)
             implementation(libs.arrow.core)
+            implementation(libs.kotlinx.serialization.core)
         }
 
         jsMain.dependencies {
+            implementation(libs.arrow.core)
             implementation(libs.kotlin.wrappers.js)
             implementation(libs.kotlinx.serialization.core)
-            implementation(libs.arrow.core)
         }
     }
 }
