@@ -3,6 +3,7 @@ package games.studiohummingbird.cultoftheancestormoth.serialization
 import games.studiohummingbird.cultoftheancestormoth.recordtypes.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -55,8 +56,35 @@ data class BethesdaByteStream(val size: Int) : AbstractEncoder() {
         putLong(double.toRawBits())
     }
 
-    override val serializersModule: SerializersModule
-        get() = TODO("Not yet implemented")
+    override val serializersModule: SerializersModule = EmptySerializersModule()
+
+    override fun encodeByte(value: Byte) {
+        put(value)
+    }
+
+    override fun encodeInt(value: Int) {
+        putInt(value)
+    }
+
+    override fun encodeLong(value: Long) {
+        putLong(value)
+    }
+
+    override fun encodeShort(value: Short) {
+        putShort(value)
+    }
+
+    override fun encodeFloat(value: Float) {
+        putFloat(value)
+    }
+
+    override fun encodeDouble(value: Double) {
+        putDouble(value)
+    }
+
+    override fun encodeString(value: String) {
+        put(value.toWindows1252ByteArray())
+    }
 }
 
 fun littleEndianByteArray(size: Int, action: BethesdaByteStream.() -> Unit = {}): ByteArray =
