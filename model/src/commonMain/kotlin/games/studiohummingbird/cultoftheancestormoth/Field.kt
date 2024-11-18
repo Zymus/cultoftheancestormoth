@@ -1,3 +1,3 @@
 package games.studiohummingbird.cultoftheancestormoth
 
-object Field
+data class Field<T>(val value: T)

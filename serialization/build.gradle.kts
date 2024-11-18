@@ -18,6 +18,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.arrow.core)
+            implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.serialization.core)
             implementation(project(":model"))
         }

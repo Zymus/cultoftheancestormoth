@@ -1,135 +1,96 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.recordtypes.*
+import kotlinx.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
-data class BethesdaByteStream(val size: Int) : AbstractEncoder() {
-    val byteArray = ByteArray(size)
-    private var position = 0
-
-    fun put(array: ByteArray): BethesdaByteStream = apply {
-        array.copyInto(byteArray, position)
-        position += array.size
-    }
-
-    fun put(byte: Byte) = apply {
-        byteArray[position++] = byte
-    }
-
-    fun put(int: Int) = apply {
-        put((int and 0xff).toByte())
-    }
-
-    fun putShort(short: Short) = apply {
-        val intValue = short.toInt()
-        put(intValue)
-        put(intValue shr 8)
-    }
-
-    fun putInt(int: Int) = apply {
-        put(int)
-        put(int shr 8)
-        put(int shr 16)
-        put(int shr 24)
-    }
-
-    fun putLong(long: Long) = apply {
-        val highInt = (long shr 32).toInt()
-        val lowInt = (long and 0xffffffff).toInt()
-        put(lowInt)
-        put(highInt)
-    }
-
-    fun putFloat(float: Float) = apply {
-        putInt(float.toRawBits())
-    }
-
-    fun putDouble(double: Double) = apply {
-        putLong(double.toRawBits())
-    }
+class BethesdaBufferEncoder(private val buffer: Buffer = Buffer()) : AbstractEncoder() {
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
     override fun encodeByte(value: Byte) {
-        put(value)
+        buffer.writeByte(value)
     }
 
     override fun encodeInt(value: Int) {
-        putInt(value)
+        buffer.writeIntLe(value)
     }
 
     override fun encodeLong(value: Long) {
-        putLong(value)
+        buffer.writeLongLe(value)
     }
 
     override fun encodeShort(value: Short) {
-        putShort(value)
+        buffer.writeShortLe(value)
     }
 
     override fun encodeFloat(value: Float) {
-        putFloat(value)
+        buffer.writeFloatLe(value)
     }
 
     override fun encodeDouble(value: Double) {
-        putDouble(value)
+        buffer.writeDoubleLe(value)
     }
 
     override fun encodeString(value: String) {
-        put(value.toWindows1252ByteArray())
+        buffer.write(value.toWindows1252ByteArray())
     }
 }
 
-fun littleEndianByteArray(size: Int, action: BethesdaByteStream.() -> Unit = {}): ByteArray =
-    BethesdaByteStream(size).apply(action).byteArray
+fun littleEndianByteArray(action: BethesdaBufferEncoder.() -> Unit = {}): ByteArray =
+    Buffer().apply {
+        BethesdaBufferEncoder(this).apply(action)
+    }
+    .readByteArray()
 
 
 // region natives
 
 fun String.toZStringByteArray()
-        : ByteArray = littleEndianByteArray(length + 1)
+        : ByteArray = littleEndianByteArray()
 {
-    put(toWindows1252ByteArray())
-    put(0)
+    encodeString(this@toZStringByteArray)
+    encodeByte(0)
 }
 
 fun Byte.toByteArray()
-        : ByteArray = littleEndianByteArray(1)
+        : ByteArray = littleEndianByteArray()
 {
-    put(this@toByteArray)
+    encodeByte(this@toByteArray)
 }
 
 fun Short.toByteArray()
-        : ByteArray = littleEndianByteArray(2)
+        : ByteArray = littleEndianByteArray()
 {
-    putShort(this@toByteArray)
+    encodeShort(this@toByteArray)
 }
 
 fun Int.toByteArray()
-        : ByteArray = littleEndianByteArray(4)
+        : ByteArray = littleEndianByteArray()
 {
-    putInt(this@toByteArray)
+    encodeInt(this@toByteArray)
 }
 
 fun Long.toByteArray()
-        : ByteArray = littleEndianByteArray(8)
+        : ByteArray = littleEndianByteArray()
 {
-    putLong(this@toByteArray)
+    encodeLong(this@toByteArray)
 }
 
 fun Float.toByteArray()
-        : ByteArray = littleEndianByteArray(4)
+        : ByteArray = littleEndianByteArray()
 {
-    putFloat(this@toByteArray)
+    encodeFloat(this@toByteArray)
 }
 
 fun Double.toByteArray()
-        : ByteArray = littleEndianByteArray(8)
+        : ByteArray = littleEndianByteArray()
 {
-    putDouble(this@toByteArray)
+    encodeDouble(this@toByteArray)
 }
 
 fun UByte.toByteArray()
@@ -186,10 +147,10 @@ fun fold(byteArrays: Iterable<ByteArray>): ByteArray =
 fun Potion.toByteArray()
         : ByteArray {
     val editorId = field("EDID", editorId.toZStringByteArray())
-    val objectBounds = field("OBND", littleEndianByteArray(12))
+    val objectBounds = field("OBND", littleEndianByteArray())
     val name = field("FULL", name.toZStringByteArray())
     val weight = field("DATA", weight.toByteArray())
-    val enchantedItem = field("ENIT", littleEndianByteArray(20))
+    val enchantedItem = field("ENIT", littleEndianByteArray())
     val effectsData = effects?.map {
         fold(listOf(
             field("EFID", it.effectId.toByteArray()),
