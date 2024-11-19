@@ -1,7 +1,8 @@
 package games.studiohummingbird.cultoftheancestormoth.web
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.bethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.encodePlugin
 import games.studiohummingbird.cultoftheancestormoth.serialization.experimentalPlugin
-import games.studiohummingbird.cultoftheancestormoth.serialization.toByteArray
 import react.FC
 import react.Props
 import react.create
@@ -22,7 +23,7 @@ fun main() {
 @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
 val App = FC<Props> {
     val plugin = experimentalPlugin()
-    val pluginData = plugin.toByteArray()
+    val pluginData = bethesdaBufferEncoder { encodePlugin(plugin) }
     val pluginDataBase64 = Base64.encode(pluginData)
     console.log("base64 encoding of the example plugin", pluginDataBase64)
 

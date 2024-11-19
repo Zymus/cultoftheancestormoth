@@ -14,6 +14,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.clikt)
             implementation(project(":model"))
+            implementation(libs.kotlinx.serialization.core)
             implementation(project(":serialization"))
         }
     }

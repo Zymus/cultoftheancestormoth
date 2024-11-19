@@ -29,6 +29,7 @@ kotlin {
             implementation(libs.kotlin.wrappers.css)
             implementation(libs.kotlin.wrappers.react)
             implementation(libs.kotlin.wrappers.react.dom)
+            implementation(libs.kotlinx.serialization.core)
             implementation(project(":model"))
             implementation(project(":serialization"))
         }

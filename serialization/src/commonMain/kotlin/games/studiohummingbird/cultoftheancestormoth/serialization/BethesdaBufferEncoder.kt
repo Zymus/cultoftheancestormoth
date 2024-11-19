@@ -41,211 +41,171 @@ class BethesdaBufferEncoder(private val buffer: Buffer = Buffer()) : AbstractEnc
     }
 
     override fun encodeString(value: String) {
-        buffer.write(value.toWindows1252ByteArray())
+        encodeWindows1252String(value)
     }
 }
 
 fun bethesdaBufferEncoder(action: BethesdaBufferEncoder.() -> Unit = {}): ByteArray =
-    Buffer().apply {
-        BethesdaBufferEncoder(this).apply(action)
-    }
+    Buffer()
+        .apply { BethesdaBufferEncoder(this).apply(action) }
         .readByteArray()
 
 
 // region natives
 
-fun String.toZStringByteArray()
-        : ByteArray = bethesdaBufferEncoder()
-{
-    encodeString(this@toZStringByteArray)
+fun BethesdaBufferEncoder.encodeZString(value: String) {
+    encodeString(value)
     encodeByte(0)
 }
-
-fun Byte.toByteArray()
-        : ByteArray = bethesdaBufferEncoder()
-{
-    encodeByte(this@toByteArray)
-}
-
-fun Short.toByteArray()
-        : ByteArray = bethesdaBufferEncoder()
-{
-    encodeShort(this@toByteArray)
-}
-
-fun Int.toByteArray()
-        : ByteArray = bethesdaBufferEncoder()
-{
-    encodeInt(this@toByteArray)
-}
-
-fun Long.toByteArray()
-        : ByteArray = bethesdaBufferEncoder()
-{
-    encodeLong(this@toByteArray)
-}
-
-fun Float.toByteArray()
-        : ByteArray = bethesdaBufferEncoder()
-{
-    encodeFloat(this@toByteArray)
-}
-
-fun Double.toByteArray(): ByteArray =
-    bethesdaBufferEncoder() {
-        encodeDouble(this@toByteArray)
-    }
-
-fun UByte.toByteArray(): ByteArray =
-    toByte().toByteArray()
-
-fun UShort.toByteArray(): ByteArray =
-    toShort().toByteArray()
-
-fun UInt.toByteArray(): ByteArray =
-    toInt().toByteArray()
-
-fun ULong.toByteArray(): ByteArray =
-    toLong().toByteArray()
 
 // endregion
 
 // region GMST
-fun GameSetting.toByteArray()
-        : ByteArray {
-    val (namePrefix: String, valueBuffer: ByteArray) = when (this) {
-        is BooleanGameSetting -> Pair("b", (if (value) 1 else 0).toByteArray())
-        is FloatGameSetting -> Pair("f", value.toByteArray())
-        is IntGameSetting -> Pair("i", value.toByteArray())
-        is StringGameSetting -> Pair("s", value.toWindows1252ByteArray())
+
+typealias EncoderAction = BethesdaBufferEncoder.() -> Unit
+
+fun encoderAction(action: EncoderAction): EncoderAction = action
+
+fun BethesdaBufferEncoder.encodeGameSetting(gameSetting: GameSetting) {
+    val (namePrefix: String, encodeSetting: EncoderAction) = when (gameSetting) {
+        is BooleanGameSetting -> Pair("b", encoderAction { encodeInt(if (gameSetting.value) 1 else 0) })
+        is FloatGameSetting -> Pair("f", encoderAction { encodeFloat(gameSetting.value) })
+        is IntGameSetting -> Pair("i", encoderAction { encodeInt(gameSetting.value) })
+        is StringGameSetting -> Pair("s", encoderAction { encodeWindows1252String(gameSetting.value) })
     }
 
-    val editorId = field("EDID", "$namePrefix$name".toZStringByteArray())
-    val value = field("DATA", valueBuffer)
-
-    return fold(
-        listOf(
-            editorId,
-            value
-        )
-    )
+    encodeField("EDID") { encodeZString("$namePrefix${gameSetting.name}") }
+    encodeField("DATA") { encodeSetting() }
 }
-
-fun GameSettings.toByteArray()
-        : ByteArray = group("GMST", GameSetting::toByteArray)
 
 // endregion
 
-fun fold(byteArrays: Iterable<ByteArray>): ByteArray =
-    ByteArray(byteArrays.sumOf(ByteArray::size)).apply {
-        var position = 0
-        byteArrays.forEach {
-            it.copyInto(this, position)
-            position += it.size
-        }
-    }
-
 // region ALCH
 
-fun Potion.toByteArray()
-        : ByteArray {
-    val editorId = field("EDID", editorId.toZStringByteArray())
-    val objectBounds = field("OBND", bethesdaBufferEncoder())
-    val name = field("FULL", name.toZStringByteArray())
-    val weight = field("DATA", weight.toByteArray())
-    val enchantedItem = field("ENIT", bethesdaBufferEncoder())
-    val effectsData = effects?.map {
-        fold(
-            listOf(
-                field("EFID", it.effectId.toByteArray()),
-                field(
-                    "EFIT", fold(
-                        listOf(
-                            it.effectParams.magnitude.toByteArray(),
-                            it.effectParams.areaOfEffect.toByteArray(),
-                            it.effectParams.duration.toByteArray()
-                        )
-                    )
-                )
-            )
-        )
+fun BethesdaBufferEncoder.encodePotion(potion: Potion) {
+    encodeField("EDID") { encodeZString(potion.editorId) }
+    encodeField("OBND") { repeat(6) { encodeShort(0) } }
+    encodeField("FULL") { encodeZString(potion.name) }
+    encodeField("DATA") { encodeFloat(potion.weight) }
+    encodeField("ENIT") {
+        val potionValue = 0
+        val flags = 0
+        val addiction = 0
+        val addictionChance = 0
+        val useSoundFormId = 0
+
+        encodeInt(potionValue)
+        encodeInt(flags)
+        encodeInt(addiction)
+        encodeInt(addictionChance)
+        encodeInt(useSoundFormId)
+    }
+
+    val effectsData = potion.effects?.map {
+        bethesdaBufferEncoder {
+            encodeField("EFID") { encodeInt(it.effectId.toInt()) }
+            encodeField("EFIT") {
+                encodeFloat(it.effectParams.magnitude)
+                encodeInt(it.effectParams.areaOfEffect.toInt())
+                encodeInt(it.effectParams.duration.toInt())
+            }
+        }
     } ?: emptyList()
 
-    return fold(
-        listOf(
-            editorId,
-            objectBounds,
-            name,
-            weight,
-            enchantedItem,
-            fold(effectsData)
-        )
-    )
+    effectsData.forEach(::encodeBytes)
 }
-
-fun Potions.toByteArray()
-        : ByteArray = group("ALCH", Potion::toByteArray)
 
 // endregion
 
 // region structural
 
-fun field(name: String, fieldData: ByteArray): ByteArray =
-    bethesdaBufferEncoder {
-        encodeString(name)
-        encodeShort(fieldData.size.toShort())
-        encodeBytes(fieldData)
-    }
-
-fun record(recordTag: String, recordData: ByteArray)
-        : ByteArray {
-    val recordTagBuffer = recordTag.toWindows1252ByteArray()
-    val size = recordData.size.toUInt().toByteArray()
-    val flags = 0.toUInt().toByteArray()
-    val recordFormId = 0.toUInt().toByteArray()
-    val timestamp = 0.toUShort().toByteArray()
-    val versionControl = 0.toUShort().toByteArray()
-    val internalVersion = 0.toUShort().toByteArray()
-    val unknown = 0.toUShort().toByteArray()
-
-    return fold(
-        listOf(
-            recordTagBuffer,
-            size,
-            flags,
-            recordFormId,
-            timestamp,
-            versionControl,
-            internalVersion,
-            unknown,
-            recordData
-        )
-    )
+fun BethesdaBufferEncoder.encodeField(name: String, fieldBufferAction: BethesdaBufferEncoder.() -> Unit) {
+    encodeString(name)
+    val fieldData = bethesdaBufferEncoder { fieldBufferAction() }
+    encodeShort(fieldData.size.toShort())
+    encodeBytes(fieldData)
 }
 
-fun <T> Iterable<T>.group(recordTag: String, action: (T) -> ByteArray)
-        : ByteArray {
-    val elementsBuffer = fold(map { record(recordTag, action(it)) })
-    val groupTag = "GRUP".toWindows1252ByteArray()
-    val size = elementsBuffer.size.toUInt().toByteArray()
-    val name = recordTag.toWindows1252ByteArray()
-    val groupType = 0.toByteArray()
-    val timestamp = 0.toUShort().toByteArray()
-    val versionControl = 0.toUShort().toByteArray()
-    val unknown = 0.toUInt().toByteArray()
+fun BethesdaBufferEncoder.encodeRecord(recordTag: String, encodeRecordData: BethesdaBufferEncoder.() -> Unit) {
+    val flags = 0
+    val formId = 0
+    val timeStamp = 0
+    val versionControl = 0
+    val internalVersion = 0
+    val unknown = 0
 
-    return fold(
-        listOf(
-            groupTag,
-            size,
-            name,
-            groupType,
-            timestamp,
-            versionControl,
-            unknown,
-            elementsBuffer
-        )
-    )
+    val recordData = bethesdaBufferEncoder(encodeRecordData)
+
+    encodeString(recordTag)
+    encodeInt(recordData.size)
+    encodeInt(flags)
+    encodeInt(formId)
+    encodeShort(timeStamp.toShort())
+    encodeShort(versionControl.toShort())
+    encodeShort(internalVersion.toShort())
+    encodeShort(unknown.toShort())
+    encodeBytes(recordData)
+}
+
+fun <T> BethesdaBufferEncoder.encodeGroup(recordTag: String, records: Iterable<T>, encodeRecordData: BethesdaBufferEncoder.(T) -> Unit) {
+    val elementsBuffer = bethesdaBufferEncoder {
+        records.forEach { encodeRecord(recordTag) { encodeRecordData(it) } }
+    }
+
+    val groupType = 0
+    val timestamp = 0
+    val versionControl = 0
+    val unknown = 0
+
+    encodeString("GRUP")
+    encodeInt(elementsBuffer.size)
+    encodeString(recordTag)
+    encodeInt(groupType)
+    encodeShort(timestamp.toShort())
+    encodeShort(versionControl.toShort())
+    encodeInt(unknown)
+    encodeBytes(elementsBuffer)
+}
+
+// endregion
+
+// region Plugin
+
+fun BethesdaBufferEncoder.encodePlugin(plugin: Plugin) {
+    val recordCount = plugin.potions.count() + 1 + plugin.gameSettings.count() + 1
+    val tes4RecordData = bethesdaBufferEncoder {
+        encodeField("HEDR") {
+            val version = 1.7f
+            val nextAvailableObjectId = 33000
+
+            encodeFloat(version)
+            encodeInt(recordCount)
+            encodeInt(nextAvailableObjectId)
+        }
+        encodeField("CNAM") { encodeZString("Zymus") }
+        encodeField("SNAM") { encodeZString("Cult of the Ancestor Moth Example") }
+        encodeBytes(bethesdaBufferEncoder {
+            encodeField("MAST") { encodeZString("Skyrim.esm") }
+            encodeField("DATA") { encodeLong(0) }
+        })
+        // onam, skipped for now
+        encodeField("INTV") { encodeInt(0) }
+    }
+
+    // region TES4 record
+    encodeString("TES4")
+    encodeInt(tes4RecordData.size)
+    encodeInt(0)// flags
+    encodeInt(0)// record (form) identifier
+    encodeShort(0)// timestamps
+    encodeShort(0)// version control
+    encodeShort(0)// internal version
+    encodeShort(0)// unknown
+    encodeBytes(tes4RecordData)
+    // INCC, skipped for now
+    // endregion
+    encodeGroup("GMST", plugin.gameSettings, BethesdaBufferEncoder::encodeGameSetting)
+    encodeGroup("ALCH", plugin.potions, BethesdaBufferEncoder::encodePotion)
 }
 
 // endregion

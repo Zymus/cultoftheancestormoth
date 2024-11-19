@@ -18,9 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.bethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.field
+import games.studiohummingbird.cultoftheancestormoth.serialization.encodeField
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class BethesdaBufferEncoderTests {
@@ -48,8 +47,11 @@ class BethesdaBufferEncoderTests {
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testField() {
-        val dataBytes = bethesdaBufferEncoder { encodeInt(26) }
-        val fieldBytes = field("DATA", dataBytes)
+        val fieldBytes = bethesdaBufferEncoder {
+            encodeField("data") {
+                encodeInt(26)
+            }
+        }
 
         println(fieldBytes.toHexString())
         assertEquals(10, fieldBytes.size)
