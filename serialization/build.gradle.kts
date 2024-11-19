@@ -10,7 +10,13 @@ repositories {
 
 kotlin {
     js {
-        browser()
+        browser {
+            testTask {
+                useKarma {
+                    useFirefox()
+                }
+            }
+        }
         binaries.executable()
     }
     jvm()
@@ -21,6 +27,10 @@ kotlin {
             implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.serialization.core)
             implementation(project(":model"))
+        }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
 
         jvmMain.dependencies {

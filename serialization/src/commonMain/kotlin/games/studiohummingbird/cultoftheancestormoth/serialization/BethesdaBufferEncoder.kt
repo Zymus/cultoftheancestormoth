@@ -12,6 +12,10 @@ class BethesdaBufferEncoder(private val buffer: Buffer = Buffer()) : AbstractEnc
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
+    fun encodeBytes(byteArray: ByteArray) {
+        buffer.write(byteArray)
+    }
+
     override fun encodeByte(value: Byte) {
         buffer.writeByte(value)
     }
@@ -41,69 +45,68 @@ class BethesdaBufferEncoder(private val buffer: Buffer = Buffer()) : AbstractEnc
     }
 }
 
-fun littleEndianByteArray(action: BethesdaBufferEncoder.() -> Unit = {}): ByteArray =
+fun bethesdaBufferEncoder(action: BethesdaBufferEncoder.() -> Unit = {}): ByteArray =
     Buffer().apply {
         BethesdaBufferEncoder(this).apply(action)
     }
-    .readByteArray()
+        .readByteArray()
 
 
 // region natives
 
 fun String.toZStringByteArray()
-        : ByteArray = littleEndianByteArray()
+        : ByteArray = bethesdaBufferEncoder()
 {
     encodeString(this@toZStringByteArray)
     encodeByte(0)
 }
 
 fun Byte.toByteArray()
-        : ByteArray = littleEndianByteArray()
+        : ByteArray = bethesdaBufferEncoder()
 {
     encodeByte(this@toByteArray)
 }
 
 fun Short.toByteArray()
-        : ByteArray = littleEndianByteArray()
+        : ByteArray = bethesdaBufferEncoder()
 {
     encodeShort(this@toByteArray)
 }
 
 fun Int.toByteArray()
-        : ByteArray = littleEndianByteArray()
+        : ByteArray = bethesdaBufferEncoder()
 {
     encodeInt(this@toByteArray)
 }
 
 fun Long.toByteArray()
-        : ByteArray = littleEndianByteArray()
+        : ByteArray = bethesdaBufferEncoder()
 {
     encodeLong(this@toByteArray)
 }
 
 fun Float.toByteArray()
-        : ByteArray = littleEndianByteArray()
+        : ByteArray = bethesdaBufferEncoder()
 {
     encodeFloat(this@toByteArray)
 }
 
-fun Double.toByteArray()
-        : ByteArray = littleEndianByteArray()
-{
-    encodeDouble(this@toByteArray)
-}
+fun Double.toByteArray(): ByteArray =
+    bethesdaBufferEncoder() {
+        encodeDouble(this@toByteArray)
+    }
 
-fun UByte.toByteArray()
-        : ByteArray = toByte().toByteArray()
+fun UByte.toByteArray(): ByteArray =
+    toByte().toByteArray()
 
-fun UShort.toByteArray()
-        : ByteArray = toShort().toByteArray()
+fun UShort.toByteArray(): ByteArray =
+    toShort().toByteArray()
 
-fun UInt.toByteArray()
-        : ByteArray = toInt().toByteArray()
+fun UInt.toByteArray(): ByteArray =
+    toInt().toByteArray()
 
-fun ULong.toByteArray()
-        : ByteArray = toLong().toByteArray()
+fun ULong.toByteArray(): ByteArray =
+    toLong().toByteArray()
 
 // endregion
 
@@ -147,19 +150,25 @@ fun fold(byteArrays: Iterable<ByteArray>): ByteArray =
 fun Potion.toByteArray()
         : ByteArray {
     val editorId = field("EDID", editorId.toZStringByteArray())
-    val objectBounds = field("OBND", littleEndianByteArray())
+    val objectBounds = field("OBND", bethesdaBufferEncoder())
     val name = field("FULL", name.toZStringByteArray())
     val weight = field("DATA", weight.toByteArray())
-    val enchantedItem = field("ENIT", littleEndianByteArray())
+    val enchantedItem = field("ENIT", bethesdaBufferEncoder())
     val effectsData = effects?.map {
-        fold(listOf(
-            field("EFID", it.effectId.toByteArray()),
-            field("EFIT", fold(listOf(
-                it.effectParams.magnitude.toByteArray(),
-                it.effectParams.areaOfEffect.toByteArray(),
-                it.effectParams.duration.toByteArray()
-            )))
-        ))
+        fold(
+            listOf(
+                field("EFID", it.effectId.toByteArray()),
+                field(
+                    "EFIT", fold(
+                        listOf(
+                            it.effectParams.magnitude.toByteArray(),
+                            it.effectParams.areaOfEffect.toByteArray(),
+                            it.effectParams.duration.toByteArray()
+                        )
+                    )
+                )
+            )
+        )
     } ?: emptyList()
 
     return fold(
@@ -181,14 +190,12 @@ fun Potions.toByteArray()
 
 // region structural
 
-fun field(name: String, fieldData: ByteArray)
-        : ByteArray = fold(
-    listOf(
-        name.toWindows1252ByteArray(),
-        fieldData.size.toUShort().toByteArray(),
-        fieldData
-    )
-)
+fun field(name: String, fieldData: ByteArray): ByteArray =
+    bethesdaBufferEncoder {
+        encodeString(name)
+        encodeShort(fieldData.size.toShort())
+        encodeBytes(fieldData)
+    }
 
 fun record(recordTag: String, recordData: ByteArray)
         : ByteArray {
