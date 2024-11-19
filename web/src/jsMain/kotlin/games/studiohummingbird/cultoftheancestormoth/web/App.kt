@@ -7,7 +7,13 @@ import react.FC
 import react.Props
 import react.create
 import react.dom.client.createRoot
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.ul
@@ -27,7 +33,7 @@ val App = FC<Props> {
     val pluginDataBase64 = Base64.encode(pluginData)
     console.log("base64 encoding of the example plugin", pluginDataBase64)
 
-    p {
+    h1 {
         +"This is an example Skyrim plugin, created by Zymus, generated using Kotlin Multiplatform."
     }
     p {
@@ -44,11 +50,11 @@ val App = FC<Props> {
         +"This is highly experimental at the moment. The mods created here should be tested and verified before use."
         +"Not that there's anything freaky, just a lot of bare wires, so be careful."
     }
-    p {
-        +"The example mod contains the following records"
+    div {
+        h2 { +"The example mod contains the following records" }
         ul {
             li {
-                +"GameSettings (GMST)"
+                h3 { +"GameSettings (GMST)" }
                 ul {
                     plugin.gameSettings.forEach {
                         li {
@@ -58,12 +64,12 @@ val App = FC<Props> {
                 }
             }
             li {
-                +"Potions (ALCH)"
+                h3 { +"Potions (ALCH)" }
                 ul {
                     plugin.potions.forEach {
                         li {
                             +it.editorId
-                            p { +"Effects" }
+                            h4 { +"Effects" }
                             ul {
                                 it.effects?.forEach { effect ->
                                     li {

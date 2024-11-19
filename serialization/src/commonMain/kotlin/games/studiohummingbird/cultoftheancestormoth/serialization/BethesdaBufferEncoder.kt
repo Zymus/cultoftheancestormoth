@@ -45,7 +45,7 @@ class BethesdaBufferEncoder(private val buffer: Buffer = Buffer()) : AbstractEnc
     }
 }
 
-fun bethesdaBufferEncoder(action: BethesdaBufferEncoder.() -> Unit = {}): ByteArray =
+fun bethesdaBufferEncoder(action: BethesdaBufferEncoder.() -> Unit): ByteArray =
     Buffer()
         .apply { BethesdaBufferEncoder(this).apply(action) }
         .readByteArray()
@@ -68,10 +68,10 @@ fun encoderAction(action: EncoderAction): EncoderAction = action
 
 fun BethesdaBufferEncoder.encodeGameSetting(gameSetting: GameSetting) {
     val (namePrefix: String, encodeSetting: EncoderAction) = when (gameSetting) {
-        is BooleanGameSetting -> Pair("b", encoderAction { encodeInt(if (gameSetting.value) 1 else 0) })
-        is FloatGameSetting -> Pair("f", encoderAction { encodeFloat(gameSetting.value) })
-        is IntGameSetting -> Pair("i", encoderAction { encodeInt(gameSetting.value) })
-        is StringGameSetting -> Pair("s", encoderAction { encodeWindows1252String(gameSetting.value) })
+        is BooleanGameSetting -> "b" to encoderAction { encodeInt(if (gameSetting.value) 1 else 0) }
+        is FloatGameSetting -> "f" to encoderAction { encodeFloat(gameSetting.value) }
+        is IntGameSetting -> "i" to encoderAction { encodeInt(gameSetting.value) }
+        is StringGameSetting -> "s" to encoderAction { encodeWindows1252String(gameSetting.value) }
     }
 
     encodeField("EDID") { encodeZString("$namePrefix${gameSetting.name}") }
@@ -101,18 +101,14 @@ fun BethesdaBufferEncoder.encodePotion(potion: Potion) {
         encodeInt(useSoundFormId)
     }
 
-    val effectsData = potion.effects?.map {
-        bethesdaBufferEncoder {
-            encodeField("EFID") { encodeInt(it.effectId.toInt()) }
-            encodeField("EFIT") {
-                encodeFloat(it.effectParams.magnitude)
-                encodeInt(it.effectParams.areaOfEffect.toInt())
-                encodeInt(it.effectParams.duration.toInt())
-            }
+    potion.effects?.forEach {
+        encodeField("EFID") { encodeInt(it.effectId.toInt()) }
+        encodeField("EFIT") {
+            encodeFloat(it.effectParams.magnitude)
+            encodeInt(it.effectParams.areaOfEffect.toInt())
+            encodeInt(it.effectParams.duration.toInt())
         }
-    } ?: emptyList()
-
-    effectsData.forEach(::encodeBytes)
+    }
 }
 
 // endregion
@@ -184,10 +180,13 @@ fun BethesdaBufferEncoder.encodePlugin(plugin: Plugin) {
         }
         encodeField("CNAM") { encodeZString("Zymus") }
         encodeField("SNAM") { encodeZString("Cult of the Ancestor Moth Example") }
-        encodeBytes(bethesdaBufferEncoder {
-            encodeField("MAST") { encodeZString("Skyrim.esm") }
+
+        val pluginMasters = listOf("Skyrim.esm")
+        pluginMasters.forEach {
+            encodeField("MAST") { encodeZString(it) }
             encodeField("DATA") { encodeLong(0) }
-        })
+        }
+
         // onam, skipped for now
         encodeField("INTV") { encodeInt(0) }
     }
