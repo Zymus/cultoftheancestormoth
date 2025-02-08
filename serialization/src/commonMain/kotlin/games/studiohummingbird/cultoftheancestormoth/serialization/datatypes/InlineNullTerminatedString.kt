@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization.datatypes
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.decodeWindows1252String
 import games.studiohummingbird.cultoftheancestormoth.serialization.encodeWindows1252
 import games.studiohummingbird.cultoftheancestormoth.serialization.readUntil
@@ -71,3 +72,7 @@ fun nullTerminatedStringDecoder(source: Source): Decoder =
             return decodedString
         }
     }
+
+@ExperimentalSerializationApi
+fun SerialDescriptor.isNullTerminatedString(index: Int): Boolean =
+    getElementAnnotations(index).any { it is NullTerminatedString }

@@ -17,8 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringDecoder
+import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -121,3 +123,9 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
         return if (structureElementIndex == structureElements) { DECODE_DONE } else { structureElementIndex++ }
     }
 }
+
+@OptIn(ExperimentalStdlibApi::class, ExperimentalSerializationApi::class)
+fun bethesdaBufferDecoder(action: BethesdaBufferDecoder.() -> Unit): ByteArray =
+    Buffer()
+        .apply { BethesdaBufferDecoder(this).apply(action) }
+        .readByteArray()
