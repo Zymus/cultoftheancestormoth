@@ -13,7 +13,8 @@ kotlin {
         browser {
             testTask {
                 useKarma {
-                    useFirefox()
+                    useChromiumHeadless()
+                    //useFirefoxHeadless()// doesn't seem to work on ubuntu
                 }
             }
         }
@@ -26,7 +27,7 @@ kotlin {
             implementation(libs.arrow.core)
             implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.serialization.core)
-            implementation(project(":model"))
+            implementation(project(":bytestring-serializer"))
         }
 
         commonTest.dependencies {
