@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import kotlinx.io.Buffer
+import kotlinx.io.Source
 import kotlinx.io.readDoubleLe
 import kotlinx.io.readFloatLe
 import kotlinx.io.readIntLe
@@ -31,20 +31,20 @@ import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 @ExperimentalSerializationApi
-open class PrimitiveBufferDecoder(protected val buffer: Buffer) : AbstractDecoder() {
+open class PrimitiveBufferDecoder(private val source: Source) : AbstractDecoder() {
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
-    override fun decodeByte(): Byte = buffer.readByte()
+    override fun decodeByte(): Byte = source.readByte()
 
-    override fun decodeShort(): Short = buffer.readShortLe()
+    override fun decodeShort(): Short = source.readShortLe()
 
-    override fun decodeInt(): Int = buffer.readIntLe()
+    override fun decodeInt(): Int = source.readIntLe()
 
-    override fun decodeLong(): Long = buffer.readLongLe()
+    override fun decodeLong(): Long = source.readLongLe()
 
-    override fun decodeFloat(): Float = buffer.readFloatLe()
+    override fun decodeFloat(): Float = source.readFloatLe()
 
-    override fun decodeDouble(): Double = buffer.readDoubleLe()
+    override fun decodeDouble(): Double = source.readDoubleLe()
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int = UNKNOWN_NAME
 }
