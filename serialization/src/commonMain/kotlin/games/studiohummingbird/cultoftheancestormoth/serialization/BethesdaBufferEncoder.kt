@@ -6,6 +6,7 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nul
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
+import kotlinx.io.indexOf
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -20,7 +21,7 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
-    private val primitiveBufferEncoder by lazy { PrimitiveBufferEncoder(sink) }
+    private val primitiveBufferEncoder by lazy { PrintlnEncoder(PrimitiveBufferEncoder(sink)) }
 
     override fun encodeInline(descriptor: SerialDescriptor): Encoder {
         println("encodeInline kind=${descriptor.kind} ${descriptor.serialName}")
@@ -32,40 +33,22 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
         return this
     }
 
-    override fun encodeByte(value: Byte) {
-        println("encodeByte $value")
-        primitiveBufferEncoder.encodeByte(value)
-    }
+    override fun encodeByte(value: Byte) = primitiveBufferEncoder.encodeByte(value)
 
     fun encodeBytes(byteArray: ByteArray) {
         println("encodeBytes size=${byteArray.size}")
         sink.write(byteArray)
     }
 
-    override fun encodeShort(value: Short) {
-        println("encodeShort $value")
-        primitiveBufferEncoder.encodeShort(value)
-    }
+    override fun encodeShort(value: Short) = primitiveBufferEncoder.encodeShort(value)
 
-    override fun encodeInt(value: Int) {
-        println("encodeInt $value")
-        primitiveBufferEncoder.encodeInt(value)
-    }
+    override fun encodeInt(value: Int) = primitiveBufferEncoder.encodeInt(value)
 
-    override fun encodeLong(value: Long) {
-        println("encodeLong $value")
-        primitiveBufferEncoder.encodeLong(value)
-    }
+    override fun encodeLong(value: Long) = primitiveBufferEncoder.encodeLong(value)
 
-    override fun encodeFloat(value: Float) {
-        println("encodeFloat $value")
-        primitiveBufferEncoder.encodeFloat(value)
-    }
+    override fun encodeFloat(value: Float) = primitiveBufferEncoder.encodeFloat(value)
 
-    override fun encodeDouble(value: Double) {
-        println("encodeDouble $value")
-        primitiveBufferEncoder.encodeDouble(value)
-    }
+    override fun encodeDouble(value: Double) = primitiveBufferEncoder.encodeDouble(value)
 
     override fun encodeString(value: String) {
         println("encodeString $value")
@@ -97,16 +80,10 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
     }
 }
 
-fun Source.readUntil(value: Byte): Buffer =
-    Buffer().also {
-        var currentByte = readByte()
-        while (currentByte != value) {
-            it.writeByte(currentByte)
-            currentByte = readByte()
-        }
-    }
+fun Source.readUntil(value: Byte): Source =
+    Buffer().also { readTo(it, indexOf(value)) }
 
-fun bethesdaBufferEncoder(action: BethesdaBufferEncoder.() -> Unit): ByteArray =
+fun encodeToByteArray(action: BethesdaBufferEncoder.() -> Unit): ByteArray =
     Buffer()
         .apply { BethesdaBufferEncoder(this).apply(action) }
         .readByteArray()
@@ -119,7 +96,7 @@ fun encoderAction(action: EncoderAction): EncoderAction = action
 
 fun BethesdaBufferEncoder.encodeField(name: String, fieldBufferAction: BethesdaBufferEncoder.() -> Unit) {
     encodeString(name)
-    val fieldData = bethesdaBufferEncoder { fieldBufferAction() }
+    val fieldData = encodeToByteArray { fieldBufferAction() }
     encodeShort(fieldData.size.toShort())
     encodeBytes(fieldData)
 }
@@ -132,7 +109,7 @@ fun BethesdaBufferEncoder.encodeRecord(recordTag: String, encodeRecordData: Beth
     val internalVersion = 0
     val unknown = 0
 
-    val recordData = bethesdaBufferEncoder(encodeRecordData)
+    val recordData = encodeToByteArray(encodeRecordData)
 
     encodeString(recordTag)
     encodeInt(recordData.size)
