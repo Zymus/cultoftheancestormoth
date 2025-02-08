@@ -17,14 +17,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.BethesdaBufferDecoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.BethesdaBufferEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.bethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.encodeField
+import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.TES4
+import kotlinx.io.Buffer
+import kotlinx.io.bytestring.toHexString
+import kotlinx.io.readByteArray
+import kotlinx.io.readByteString
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.serializer
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@ExperimentalStdlibApi
+@ExperimentalSerializationApi
 class BethesdaBufferEncoderTests {
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testFloatBitsMatchIntBits() {
         val floatValue = 2.0f
@@ -44,7 +56,6 @@ class BethesdaBufferEncoderTests {
         println(shortTest.toUShort().toShort().toHexString())
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testField() {
         val fieldBytes = bethesdaBufferEncoder {
