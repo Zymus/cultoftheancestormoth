@@ -22,11 +22,10 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 class PrintlnCompositeEncoder(private val compositeEncoder: CompositeEncoder) : CompositeEncoder {
-    override val serializersModule: SerializersModule = EmptySerializersModule()
+    override val serializersModule: SerializersModule = compositeEncoder.serializersModule
 
     override fun encodeBooleanElement(
         descriptor: SerialDescriptor,

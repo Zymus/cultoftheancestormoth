@@ -23,38 +23,6 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
 
     private val primitiveBufferEncoder by lazy { PrintlnEncoder(PrimitiveBufferEncoder(sink)) }
 
-    override fun encodeInline(descriptor: SerialDescriptor): Encoder {
-        println("encodeInline kind=${descriptor.kind} ${descriptor.serialName}")
-
-        if (descriptor == InlineNullTerminatedString.serializer().descriptor) {
-            return nullTerminatedStringEncoder(sink)
-        }
-
-        return this
-    }
-
-    override fun encodeByte(value: Byte) = primitiveBufferEncoder.encodeByte(value)
-
-    fun encodeBytes(byteArray: ByteArray) {
-        println("encodeBytes size=${byteArray.size}")
-        sink.write(byteArray)
-    }
-
-    override fun encodeShort(value: Short) = primitiveBufferEncoder.encodeShort(value)
-
-    override fun encodeInt(value: Int) = primitiveBufferEncoder.encodeInt(value)
-
-    override fun encodeLong(value: Long) = primitiveBufferEncoder.encodeLong(value)
-
-    override fun encodeFloat(value: Float) = primitiveBufferEncoder.encodeFloat(value)
-
-    override fun encodeDouble(value: Double) = primitiveBufferEncoder.encodeDouble(value)
-
-    override fun encodeString(value: String) {
-        println("encodeString $value")
-        sink.encodeWindows1252().encodeString(value)
-    }
-
     override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
         println("beginCollection ${descriptor.serialName} $collectionSize")
         return beginStructure(descriptor)
@@ -76,7 +44,38 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
 
     override fun endStructure(descriptor: SerialDescriptor) {
         println("endStructure kind=${descriptor.kind} ${descriptor.serialName}")
+    }
 
+    override fun encodeInline(descriptor: SerialDescriptor): Encoder {
+        println("encodeInline kind=${descriptor.kind} ${descriptor.serialName}")
+
+        if (descriptor == InlineNullTerminatedString.serializer().descriptor) {
+            return nullTerminatedStringEncoder(sink)
+        }
+
+        return this
+    }
+
+    override fun encodeByte(value: Byte) = primitiveBufferEncoder.encodeByte(value)
+
+    override fun encodeShort(value: Short) = primitiveBufferEncoder.encodeShort(value)
+
+    override fun encodeInt(value: Int) = primitiveBufferEncoder.encodeInt(value)
+
+    override fun encodeLong(value: Long) = primitiveBufferEncoder.encodeLong(value)
+
+    override fun encodeFloat(value: Float) = primitiveBufferEncoder.encodeFloat(value)
+
+    override fun encodeDouble(value: Double) = primitiveBufferEncoder.encodeDouble(value)
+
+    override fun encodeString(value: String) {
+        println("encodeString $value")
+        sink.encodeWindows1252().encodeString(value)
+    }
+
+    fun encodeBytes(byteArray: ByteArray) {
+        println("encodeBytes size=${byteArray.size}")
+        sink.write(byteArray)
     }
 }
 

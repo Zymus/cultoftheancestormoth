@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringDecoder
 import kotlinx.io.Buffer
@@ -38,21 +37,12 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
-    private val primitiveBufferDecoder by lazy { PrimitiveBufferDecoder(source) }
+    private val primitiveBufferDecoder by lazy { PrintlnDecoder(PrimitiveBufferDecoder(source)) }
 
     private var structureElements = 0
     private var structureElementIndex = 0
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        println("beginStructure")
-        println("- kind=${descriptor.kind}")
-        println("- serialName=${descriptor.serialName}")
-        println(". isRecord=${descriptor.isRecord()}")
-        println("- annotations=${descriptor.annotations}")
-        println("- elementsCount=${descriptor.elementsCount}")
-        repeat(descriptor.elementsCount) {
-            println(" - elementDescriptor$it=${descriptor.getElementDescriptor(it)}")
-        }
         return BethesdaBufferDecoder(source).also {
             it.structureElements = descriptor.elementsCount
             it.structureElementIndex = 0
@@ -64,25 +54,6 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
         structureElementIndex = 0
     }
 
-    override fun decodeByte(): Byte {
-        print("decodeByte ")
-        val byte = primitiveBufferDecoder.decodeByte()
-        println(byte)
-        return byte
-    }
-
-    override fun decodeDouble(): Double {
-        println("decodeDouble")
-        return primitiveBufferDecoder.decodeDouble()
-    }
-
-    override fun decodeFloat(): Float {
-        print("decodeFloat ")
-        val float = primitiveBufferDecoder.decodeFloat()
-        println(float)
-        return float
-    }
-
     override fun decodeInline(descriptor: SerialDescriptor): Decoder {
         println("decodeInline $descriptor")
         return when (descriptor) {
@@ -91,24 +62,22 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
         }
     }
 
-    override fun decodeInt(): Int {
-        print("decodeInt ")
-        val int = primitiveBufferDecoder.decodeInt()
-        println(int)
-        return int
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        println("decodeElementIndex ${descriptor.serialName} $structureElements $structureElementIndex")
+        return if (structureElementIndex == structureElements) { DECODE_DONE } else { structureElementIndex++ }
     }
 
-    override fun decodeLong(): Long {
-        println("decodeLong")
-        return primitiveBufferDecoder.decodeLong()
-    }
+    override fun decodeByte(): Byte = primitiveBufferDecoder.decodeByte()
 
-    override fun decodeShort(): Short {
-        print("decodeShort ")
-        val short = primitiveBufferDecoder.decodeShort()
-        println(short)
-        return short
-    }
+    override fun decodeShort(): Short = primitiveBufferDecoder.decodeShort()
+
+    override fun decodeInt(): Int = primitiveBufferDecoder.decodeInt()
+
+    override fun decodeLong(): Long = primitiveBufferDecoder.decodeLong()
+
+    override fun decodeFloat(): Float = primitiveBufferDecoder.decodeFloat()
+
+    override fun decodeDouble(): Double = primitiveBufferDecoder.decodeDouble()
 
     override fun decodeString(): String {
         print("decodeString ")
@@ -116,11 +85,6 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
         val result = bytes.decodeWindows1252String()
         println(result)
         return result
-    }
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        println("decodeElementIndex ${descriptor.serialName} $structureElements $structureElementIndex")
-        return if (structureElementIndex == structureElements) { DECODE_DONE } else { structureElementIndex++ }
     }
 }
 
