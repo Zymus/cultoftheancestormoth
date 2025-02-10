@@ -1,8 +1,6 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isRecord
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringEncoder
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
@@ -12,7 +10,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
-import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
@@ -22,6 +19,7 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
     private val primitiveBufferEncoder by lazy { PrintlnEncoder(PrimitiveBufferEncoder(sink)) }
+    private val stringEncoder by lazy { PrintlnEncoder(sink.encodeWindows1252()) }
 
     override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
         println("beginCollection ${descriptor.serialName} $collectionSize")
@@ -46,16 +44,6 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
         println("endStructure kind=${descriptor.kind} ${descriptor.serialName}")
     }
 
-    override fun encodeInline(descriptor: SerialDescriptor): Encoder {
-        println("encodeInline kind=${descriptor.kind} ${descriptor.serialName}")
-
-        if (descriptor == InlineNullTerminatedString.serializer().descriptor) {
-            return nullTerminatedStringEncoder(sink)
-        }
-
-        return this
-    }
-
     override fun encodeByte(value: Byte) = primitiveBufferEncoder.encodeByte(value)
 
     override fun encodeShort(value: Short) = primitiveBufferEncoder.encodeShort(value)
@@ -68,10 +56,7 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
 
     override fun encodeDouble(value: Double) = primitiveBufferEncoder.encodeDouble(value)
 
-    override fun encodeString(value: String) {
-        println("encodeString $value")
-        sink.encodeWindows1252().encodeString(value)
-    }
+    override fun encodeString(value: String) = stringEncoder.encodeString(value)
 
     fun encodeBytes(byteArray: ByteArray) {
         println("encodeBytes size=${byteArray.size}")

@@ -29,6 +29,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.encoding.CompositeDecoder.Companion.UNKNOWN_NAME
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.EmptySerializersModule
@@ -61,7 +62,7 @@ fun nullTerminatedStringDecoder(source: Source): Decoder =
     object : AbstractDecoder() {
         override val serializersModule: SerializersModule = EmptySerializersModule()
 
-        override fun decodeElementIndex(descriptor: SerialDescriptor): Int = TODO()
+        override fun decodeElementIndex(descriptor: SerialDescriptor): Int = UNKNOWN_NAME
 
         override fun decodeSequentially(): Boolean = true
 

@@ -17,8 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringDecoder
 import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
@@ -27,7 +25,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
@@ -38,6 +35,7 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
     private val primitiveBufferDecoder by lazy { PrintlnDecoder(PrimitiveBufferDecoder(source)) }
+    private val stringDecoder by lazy { PrintlnDecoder(source.decodeWindows1252()) }
 
     private var structureElements = 0
     private var structureElementIndex = 0
@@ -52,14 +50,6 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
     override fun endStructure(descriptor: SerialDescriptor) {
         structureElements = 0
         structureElementIndex = 0
-    }
-
-    override fun decodeInline(descriptor: SerialDescriptor): Decoder {
-        println("decodeInline $descriptor")
-        return when (descriptor) {
-            InlineNullTerminatedString.serializer().descriptor -> nullTerminatedStringDecoder(source)
-            else -> this
-        }
     }
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
@@ -79,13 +69,7 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
 
     override fun decodeDouble(): Double = primitiveBufferDecoder.decodeDouble()
 
-    override fun decodeString(): String {
-        print("decodeString ")
-        val bytes = source.readByteArray()
-        val result = bytes.decodeWindows1252String()
-        println(result)
-        return result
-    }
+    override fun decodeString(): String = stringDecoder.decodeString()
 }
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalSerializationApi::class)
