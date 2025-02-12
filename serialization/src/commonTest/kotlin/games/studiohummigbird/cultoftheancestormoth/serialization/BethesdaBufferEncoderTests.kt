@@ -17,22 +17,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.bethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeField
+import games.studiohummingbird.cultoftheancestormoth.serialization.encodeToByteArray
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
+@ExperimentalStdlibApi
+@ExperimentalSerializationApi
 class BethesdaBufferEncoderTests {
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testFloatBitsMatchIntBits() {
         val floatValue = 2.0f
         val floatBits = floatValue.toBits()
-        val encodedFloat = bethesdaBufferEncoder {
+        val encodedFloat = encodeToByteArray {
             encodeFloat(floatValue)
         }
-        val encodedInt = bethesdaBufferEncoder {
+        val encodedInt = encodeToByteArray {
             encodeInt(floatBits)
         }
         println(encodedFloat.toHexString())
@@ -42,18 +42,5 @@ class BethesdaBufferEncoderTests {
 
         println(shortTest.toShort().toHexString())
         println(shortTest.toUShort().toShort().toHexString())
-    }
-
-    @OptIn(ExperimentalStdlibApi::class)
-    @Test
-    fun testField() {
-        val fieldBytes = bethesdaBufferEncoder {
-            encodeField("data") {
-                encodeInt(26)
-            }
-        }
-
-        println(fieldBytes.toHexString())
-        assertEquals(10, fieldBytes.size)
     }
 }

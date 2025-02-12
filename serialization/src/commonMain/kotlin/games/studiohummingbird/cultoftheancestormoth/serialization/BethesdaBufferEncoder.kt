@@ -1,126 +1,93 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.recordtypes.*
-import kotlinx.io.*
+import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isRecord
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringEncoder
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.indexOf
+import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
-class BethesdaBufferEncoder(private val buffer: Buffer = Buffer()) : AbstractEncoder() {
+class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder() {
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
+    private val primitiveBufferEncoder by lazy { PrintlnEncoder(PrimitiveBufferEncoder(sink)) }
+    private val stringEncoder by lazy { PrintlnEncoder(sink.encodeWindows1252()) }
+    private val nullTerminatedStringEncoder by lazy { PrintlnEncoder(nullTerminatedStringEncoder(sink)) }
+
+    override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
+        println("beginCollection ${descriptor.serialName} $collectionSize")
+        return beginStructure(descriptor)
+    }
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
+        println("beginStructure ${descriptor.serialName}")
+        println("- kind=${descriptor.kind}")
+        println("- annotations=${descriptor.annotations}")
+        println("- elementsCount=${descriptor.elementsCount}")
+        println(". isRecord=${descriptor.isRecord()}")
+
+        return this
+    }
+
+    override fun endStructure(descriptor: SerialDescriptor) {
+        println("endStructure kind=${descriptor.kind} ${descriptor.serialName}")
+    }
+
+    override fun encodeInline(descriptor: SerialDescriptor): Encoder {
+        println("encodeInline $descriptor")
+        return if (descriptor == InlineNullTerminatedString.serializer().descriptor) {
+            nullTerminatedStringEncoder
+        }
+        else {
+            this
+        }
+    }
+
+    override fun encodeByte(value: Byte) = primitiveBufferEncoder.encodeByte(value)
+
+    override fun encodeShort(value: Short) = primitiveBufferEncoder.encodeShort(value)
+
+    override fun encodeInt(value: Int) = primitiveBufferEncoder.encodeInt(value)
+
+    override fun encodeLong(value: Long) = primitiveBufferEncoder.encodeLong(value)
+
+    override fun encodeFloat(value: Float) = primitiveBufferEncoder.encodeFloat(value)
+
+    override fun encodeDouble(value: Double) = primitiveBufferEncoder.encodeDouble(value)
+
+    override fun encodeString(value: String) = stringEncoder.encodeString(value)
+
     fun encodeBytes(byteArray: ByteArray) {
-        buffer.write(byteArray)
-    }
-
-    override fun encodeByte(value: Byte) {
-        buffer.writeByte(value)
-    }
-
-    override fun encodeInt(value: Int) {
-        buffer.writeIntLe(value)
-    }
-
-    override fun encodeLong(value: Long) {
-        buffer.writeLongLe(value)
-    }
-
-    override fun encodeShort(value: Short) {
-        buffer.writeShortLe(value)
-    }
-
-    override fun encodeFloat(value: Float) {
-        buffer.writeFloatLe(value)
-    }
-
-    override fun encodeDouble(value: Double) {
-        buffer.writeDoubleLe(value)
-    }
-
-    override fun encodeString(value: String) {
-        encodeWindows1252String(value)
+        println("encodeBytes size=${byteArray.size}")
+        sink.write(byteArray)
     }
 }
 
-fun bethesdaBufferEncoder(action: BethesdaBufferEncoder.() -> Unit): ByteArray =
+fun Source.readUntil(value: Byte): Source =
+    Buffer().also { readTo(it, indexOf(value)) }
+
+fun encodeToByteArray(action: BethesdaBufferEncoder.() -> Unit): ByteArray =
     Buffer()
         .apply { BethesdaBufferEncoder(this).apply(action) }
         .readByteArray()
-
-
-// region natives
-
-fun BethesdaBufferEncoder.encodeZString(value: String) {
-    encodeString(value)
-    encodeByte(0)
-}
-
-// endregion
-
-// region GMST
 
 typealias EncoderAction = BethesdaBufferEncoder.() -> Unit
 
 fun encoderAction(action: EncoderAction): EncoderAction = action
 
-fun BethesdaBufferEncoder.encodeGameSetting(gameSetting: GameSetting) {
-    val (namePrefix: String, encodeSetting: EncoderAction) = when (gameSetting) {
-        is BooleanGameSetting -> "b" to encoderAction { encodeInt(if (gameSetting.value) 1 else 0) }
-        is FloatGameSetting -> "f" to encoderAction { encodeFloat(gameSetting.value) }
-        is IntGameSetting -> "i" to encoderAction { encodeInt(gameSetting.value) }
-        is StringGameSetting -> "s" to encoderAction { encodeWindows1252String(gameSetting.value) }
-    }
-
-    encodeField("EDID") { encodeZString("$namePrefix${gameSetting.name}") }
-    encodeField("DATA") { encodeSetting() }
-}
-
-// endregion
-
-// region ALCH
-
-fun BethesdaBufferEncoder.encodePotion(potion: Potion) {
-    encodeField("EDID") { encodeZString(potion.editorId) }
-    encodeField("OBND") { repeat(6) { encodeShort(0) } }
-    encodeField("FULL") { encodeZString(potion.name) }
-    encodeField("DATA") { encodeFloat(potion.weight) }
-    encodeField("ENIT") {
-        val potionValue = 0
-        val flags = 0
-        val addiction = 0
-        val addictionChance = 0
-        val useSoundFormId = 0
-
-        encodeInt(potionValue)
-        encodeInt(flags)
-        encodeInt(addiction)
-        encodeInt(addictionChance)
-        encodeInt(useSoundFormId)
-    }
-
-    potion.effects?.forEach {
-        encodeField("EFID") { encodeInt(it.effectId.toInt()) }
-        encodeField("EFIT") {
-            encodeFloat(it.effectParams.magnitude)
-            encodeInt(it.effectParams.areaOfEffect.toInt())
-            encodeInt(it.effectParams.duration.toInt())
-        }
-    }
-}
-
-// endregion
-
 // region structural
 
-fun BethesdaBufferEncoder.encodeField(name: String, fieldBufferAction: BethesdaBufferEncoder.() -> Unit) {
-    encodeString(name)
-    val fieldData = bethesdaBufferEncoder { fieldBufferAction() }
-    encodeShort(fieldData.size.toShort())
-    encodeBytes(fieldData)
-}
 
 fun BethesdaBufferEncoder.encodeRecord(recordTag: String, encodeRecordData: BethesdaBufferEncoder.() -> Unit) {
     val flags = 0
@@ -130,7 +97,7 @@ fun BethesdaBufferEncoder.encodeRecord(recordTag: String, encodeRecordData: Beth
     val internalVersion = 0
     val unknown = 0
 
-    val recordData = bethesdaBufferEncoder(encodeRecordData)
+    val recordData = encodeToByteArray(encodeRecordData)
 
     encodeString(recordTag)
     encodeInt(recordData.size)
@@ -141,70 +108,6 @@ fun BethesdaBufferEncoder.encodeRecord(recordTag: String, encodeRecordData: Beth
     encodeShort(internalVersion.toShort())
     encodeShort(unknown.toShort())
     encodeBytes(recordData)
-}
-
-fun <T> BethesdaBufferEncoder.encodeGroup(recordTag: String, records: Iterable<T>, encodeRecordData: BethesdaBufferEncoder.(T) -> Unit) {
-    val elementsBuffer = bethesdaBufferEncoder {
-        records.forEach { encodeRecord(recordTag) { encodeRecordData(it) } }
-    }
-
-    val groupType = 0
-    val timestamp = 0
-    val versionControl = 0
-    val unknown = 0
-
-    encodeString("GRUP")
-    encodeInt(elementsBuffer.size)
-    encodeString(recordTag)
-    encodeInt(groupType)
-    encodeShort(timestamp.toShort())
-    encodeShort(versionControl.toShort())
-    encodeInt(unknown)
-    encodeBytes(elementsBuffer)
-}
-
-// endregion
-
-// region Plugin
-
-fun BethesdaBufferEncoder.encodePlugin(plugin: Plugin) {
-    val recordCount = plugin.potions.count() + 1 + plugin.gameSettings.count() + 1
-    val tes4RecordData = bethesdaBufferEncoder {
-        encodeField("HEDR") {
-            val version = 1.7f
-            val nextAvailableObjectId = 33000
-
-            encodeFloat(version)
-            encodeInt(recordCount)
-            encodeInt(nextAvailableObjectId)
-        }
-        encodeField("CNAM") { encodeZString("Zymus") }
-        encodeField("SNAM") { encodeZString("Cult of the Ancestor Moth Example") }
-
-        val pluginMasters = listOf("Skyrim.esm")
-        pluginMasters.forEach {
-            encodeField("MAST") { encodeZString(it) }
-            encodeField("DATA") { encodeLong(0) }
-        }
-
-        // onam, skipped for now
-        encodeField("INTV") { encodeInt(0) }
-    }
-
-    // region TES4 record
-    encodeString("TES4")
-    encodeInt(tes4RecordData.size)
-    encodeInt(0)// flags
-    encodeInt(0)// record (form) identifier
-    encodeShort(0)// timestamps
-    encodeShort(0)// version control
-    encodeShort(0)// internal version
-    encodeShort(0)// unknown
-    encodeBytes(tes4RecordData)
-    // INCC, skipped for now
-    // endregion
-    encodeGroup("GMST", plugin.gameSettings, BethesdaBufferEncoder::encodeGameSetting)
-    encodeGroup("ALCH", plugin.potions, BethesdaBufferEncoder::encodePotion)
 }
 
 // endregion
