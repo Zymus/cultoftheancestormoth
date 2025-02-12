@@ -18,14 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
+@ExperimentalSerializationApi
 class PrintlnEncoder(private val encoder: Encoder) : Encoder {
-    override val serializersModule: SerializersModule = EmptySerializersModule()
+    override val serializersModule: SerializersModule = encoder.serializersModule
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         println("beginStructure $descriptor")
@@ -91,5 +92,25 @@ class PrintlnEncoder(private val encoder: Encoder) : Encoder {
     override fun encodeString(value: String) {
         println("encodeString $value")
         encoder.encodeString(value)
+    }
+
+    override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+        println("encodeSerializableValue $serializer $value")
+        encoder.encodeSerializableValue(serializer, value)
+    }
+
+    override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
+        println("beginCollection $descriptor $collectionSize")
+        return encoder.beginCollection(descriptor, collectionSize)
+    }
+
+    override fun encodeNotNullMark() {
+        println("encodeNotNullMark")
+        encoder.encodeNotNullMark()
+    }
+
+    override fun <T : Any> encodeNullableSerializableValue(serializer: SerializationStrategy<T>, value: T?) {
+        println("encodeNullableSerializableValue $serializer $value")
+        encoder.encodeNullableSerializableValue(serializer, value)
     }
 }

@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -73,7 +72,7 @@ class BethesdaBufferDecoder(private val source: Source) : AbstractDecoder() {
 }
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalSerializationApi::class)
-fun bethesdaBufferDecoder(action: BethesdaBufferDecoder.() -> Unit): ByteArray =
-    Buffer()
+fun bethesdaBufferDecoder(source: Source, action: BethesdaBufferDecoder.() -> Unit): ByteArray =
+    source
         .apply { BethesdaBufferDecoder(this).apply(action) }
         .readByteArray()

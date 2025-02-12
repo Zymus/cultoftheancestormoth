@@ -1,6 +1,8 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isRecord
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringEncoder
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
@@ -10,6 +12,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
@@ -20,6 +23,7 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
 
     private val primitiveBufferEncoder by lazy { PrintlnEncoder(PrimitiveBufferEncoder(sink)) }
     private val stringEncoder by lazy { PrintlnEncoder(sink.encodeWindows1252()) }
+    private val nullTerminatedStringEncoder by lazy { PrintlnEncoder(nullTerminatedStringEncoder(sink)) }
 
     override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
         println("beginCollection ${descriptor.serialName} $collectionSize")
@@ -33,15 +37,21 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
         println("- elementsCount=${descriptor.elementsCount}")
         println(". isRecord=${descriptor.isRecord()}")
 
-        if (descriptor == Field.serializer().descriptor) {
-            return fieldEncoder(sink)
-        }
-
         return this
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
         println("endStructure kind=${descriptor.kind} ${descriptor.serialName}")
+    }
+
+    override fun encodeInline(descriptor: SerialDescriptor): Encoder {
+        println("encodeInline $descriptor")
+        return if (descriptor == InlineNullTerminatedString.serializer().descriptor) {
+            nullTerminatedStringEncoder
+        }
+        else {
+            this
+        }
     }
 
     override fun encodeByte(value: Byte) = primitiveBufferEncoder.encodeByte(value)
@@ -78,12 +88,6 @@ fun encoderAction(action: EncoderAction): EncoderAction = action
 
 // region structural
 
-fun BethesdaBufferEncoder.encodeField(name: String, fieldBufferAction: BethesdaBufferEncoder.() -> Unit) {
-    encodeString(name)
-    val fieldData = encodeToByteArray { fieldBufferAction() }
-    encodeShort(fieldData.size.toShort())
-    encodeBytes(fieldData)
-}
 
 fun BethesdaBufferEncoder.encodeRecord(recordTag: String, encodeRecordData: BethesdaBufferEncoder.() -> Unit) {
     val flags = 0

@@ -17,11 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeField
 import games.studiohummingbird.cultoftheancestormoth.serialization.encodeToByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 @ExperimentalStdlibApi
 @ExperimentalSerializationApi
@@ -44,17 +42,5 @@ class BethesdaBufferEncoderTests {
 
         println(shortTest.toShort().toHexString())
         println(shortTest.toUShort().toShort().toHexString())
-    }
-
-    @Test
-    fun testField() {
-        val fieldBytes = encodeToByteArray {
-            encodeField("data") {
-                encodeInt(26)
-            }
-        }
-
-        println(fieldBytes.toHexString())
-        assertEquals(10, fieldBytes.size)
     }
 }
