@@ -3,8 +3,7 @@ package games.studiohummingbird.cultoftheancestormoth
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.types.file
+import kotlinx.serialization.ExperimentalSerializationApi
 
 class Cotam : CliktCommand() {
     override fun run() {
@@ -12,4 +11,17 @@ class Cotam : CliktCommand() {
     }
 }
 
-fun main(args: Array<String>) = Cotam().subcommands(Drudge(), Librarian(), Adept(), Example()).main(args)
+@OptIn(ExperimentalSerializationApi::class)
+fun main(args: Array<String>) =
+    mainCotam(args)
+
+fun mainCotam(args: Array<String>) =
+    Cotam().subcommands(
+        Drudge(),
+        Librarian(),
+        Adept(),
+        Example(),
+        Load()).main(args)
+
+fun mainLoad(args: Array<String>) =
+    Load().main(args)

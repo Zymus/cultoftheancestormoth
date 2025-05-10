@@ -17,10 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.BethesdaBufferEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.RecordAnnotation
-import games.studiohummingbird.cultoftheancestormoth.serialization.bethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeRecord
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
@@ -32,23 +29,3 @@ data class GRUP<T>(
     val groupType: Int = 0,// 0 is top level, other stuff is children of other records, future features
     val records: Set<T> = emptySet()
 )
-
-@OptIn(ExperimentalSerializationApi::class)
-fun <T> BethesdaBufferEncoder.encodeGroup(
-    recordTag: String,
-    group: GRUP<T>,
-    encodeRecordData: BethesdaBufferEncoder.(T) -> Unit
-) {
-    val elementsBuffer = bethesdaBufferEncoder {
-        group.records.forEach { encodeRecord(recordTag) { encodeRecordData(it) } }
-    }
-
-//    encodeString(group.typeTag)
-//    encodeInt(elementsBuffer.size)
-//    encodeString(group.label)
-//    encodeInt(group.groupType)
-//    encodeShort(group.timestamp)
-//    encodeShort(group.versionControl)
-//    encodeInt(group.unknown.toInt())
-//    encodeBytes(elementsBuffer)
-}

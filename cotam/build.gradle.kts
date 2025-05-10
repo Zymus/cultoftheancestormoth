@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
 }
@@ -8,12 +11,18 @@ repositories {
 }
 
 kotlin {
-    jvm()
+    jvm {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        binaries {
+            executable(KotlinCompilation.MAIN_COMPILATION_NAME) {
+                mainClass.set("games.studiohummingbird.cultoftheancestormoth.CotamKt")
+            }
+        }
+    }
 
     sourceSets {
         jvmMain.dependencies {
             implementation(libs.clikt)
-            implementation(project(":model"))
             implementation(libs.kotlinx.serialization.core)
             implementation(project(":serialization"))
         }

@@ -1,0 +1,38 @@
+[
+  [ "TES4", [ flags, formId, timestamp, versionControl, recordVersion, unknown ] ],
+  [ "HEDR", [ 1.7, 0, 0 ] ],
+  [ "CNAM", "Zymus" ],
+  [ "SNAM", "TES4 JSON Example" ],
+  [ "MAST", "Skyrim.esm" ],
+  [ "DATA", 0 ],
+  [ "MAST", "Update.esm" ],
+  [ "DATA", 0 ],
+  [ "MAST", "Hearthfires.esm" ],
+  [ "DATA", 0 ],
+  [ "ONAM", [ 0 ] ],
+  [ "INTV", 0 ],
+  [ "INCC", 0 ]
+],
+[
+  [ "GRUP", [ "ALCH", 0, 0, 0, 0 ] ],
+  [ "ALCH", [ 0, 0, 0, 0, 0, 0 ] ],
+  [ "EDID", "RefinedSkooma" ],
+  [ "OBND", [ 0, 0, 0, 1, 1, 1 ] ],
+  [ "FULL", "Refined Skooma" ],
+  [ "KSIZ", 1 ],
+  [ "KWDA", [ 11223344 ] ],
+  [ "MODL", [
+    [ "MODL", "" ],
+    [ "MODT", "" ],
+    [ "MODS", [ [ "" ], 0, 0, "", 0, 0 ] ]
+  ] ],
+  [ "ICON", "icon path" ],
+  [ "MICO", "message icon path" ],
+  [ "YNAM", 11223344 ],
+  [ "ZNAM", 11223344 ],
+  [ "DATA", 0.5 ],
+  [ "ENIT", [ 120, 2, 0, 10, 11111111 ] ],
+  [ "EFID", 12121212 ],
+  [ "EFIT", [ 2.5, 10, 0 ] ],
+  [ "CTDA", [ 0, 0, 1.4, 12, 0 ] ]
+]

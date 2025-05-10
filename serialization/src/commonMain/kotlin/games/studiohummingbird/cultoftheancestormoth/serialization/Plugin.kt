@@ -1,51 +1,25 @@
+/**
+    Cult of the Ancestor Moth (Plugin.kt)
+    Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.TES4
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginHeader
 
-@ExperimentalStdlibApi
-@ExperimentalSerializationApi
-@Serializable
 data class Plugin(
-    val header: TES4
-) {
-}
-
-@ExperimentalStdlibApi
-@OptIn(ExperimentalSerializationApi::class)
-fun BethesdaBufferEncoder.encodePlugin(plugin: Plugin) {
-    val tes4Record = plugin.header
-    val tes4RecordData = bethesdaBufferEncoder {
-        encodeField("HEDR") {
-            encodeFloat(tes4Record.header.version)
-            encodeInt(tes4Record.header.recordCount)
-            encodeInt(tes4Record.header.nextAvailableObjectId)
-        }
-        encodeField("CNAM") { encodeSerializableValue(TES4.Author.serializer(), tes4Record.author) }
-        encodeField("SNAM") { encodeSerializableValue(TES4.Description.serializer(), tes4Record.description) }
-
-        tes4Record.masters.forEach {
-            encodeField("MAST") { encodeSerializableValue(TES4.MasterFile.Name.serializer(), it.name) }
-            encodeField("DATA") { encodeLong(it.data) }
-        }
-
-        // onam, skipped for now
-        encodeField("INTV") { encodeInt(tes4Record.numberOfTagifiableValues) }
-    }
-
-    // region TES4 record
-    encodeString("TES4")
-    encodeInt(tes4RecordData.size)
-    encodeInt(0)// flags
-    encodeInt(0)// record (form) identifier
-    encodeShort(0)// timestamps
-    encodeShort(0)// version control
-    encodeShort(0)// internal version
-    encodeShort(0)// unknown
-    encodeBytes(tes4RecordData)
-    // INCC, skipped for now
-    // endregion
-//    encodeGroup("GMST", plugin.gameSettings, BethesdaBufferEncoder::encodeGameSetting)
-//    encodeGroup("ALCH", plugin.potions, BethesdaBufferEncoder::encodePotion)
-}
+    val header: PluginHeader,
+    val groups: List<Group>
+)

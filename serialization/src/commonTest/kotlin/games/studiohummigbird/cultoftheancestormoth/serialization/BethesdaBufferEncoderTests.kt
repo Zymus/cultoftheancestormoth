@@ -17,8 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeToByteArray
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToByteArray
 import kotlin.test.Test
 
 @ExperimentalStdlibApi
@@ -29,12 +30,8 @@ class BethesdaBufferEncoderTests {
     fun testFloatBitsMatchIntBits() {
         val floatValue = 2.0f
         val floatBits = floatValue.toBits()
-        val encodedFloat = encodeToByteArray {
-            encodeFloat(floatValue)
-        }
-        val encodedInt = encodeToByteArray {
-            encodeInt(floatBits)
-        }
+        val encodedFloat = PluginFormat.encodeToByteArray(floatValue)
+        val encodedInt = PluginFormat.encodeToByteArray(floatBits)
         println(encodedFloat.toHexString())
         println(encodedInt.toHexString())
 

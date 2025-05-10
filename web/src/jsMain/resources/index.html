@@ -2,10 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>Cult of the Ancestor Moth - Skyrim Modding with Kotlin</title>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #222;
+                color: #f99;
+            }
+
+            button {
+                background-color: #444;
+                border-color: #666;
+            }
+
+            article form {
+            }
+        }
+
+        menu {
+            display: flex;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        menu > li {
+            flex: 1;
+        }
+
+        menu > li > button {
+            width: 100%;
+        }
+
+        article form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        article form label {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+    <link rel="stylesheet" href="Plugin.kt.css" />
+    <link rel="stylesheet" href="RecordFC.kt.css" />
 </head>
 <body>
-<div id="root"></div>
+<header id="banner"></header>
+<main id="root"></main>
 <script src="web.js"></script>
 </body>
 </html>

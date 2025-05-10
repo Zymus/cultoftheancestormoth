@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization.datatypes
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.BethesdaBufferDecoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.BethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -31,21 +31,21 @@ import kotlin.test.assertEquals
 class InlineNullTerminatedStringTests {
     @Test
     fun `serializable test`() {
-        val serializer = InlineNullTerminatedString.serializer()
+        val serializer = NullTerminatedString.serializer()
         val buffer = Buffer()
         val encoder = BethesdaBufferEncoder(buffer)
-        val string = InlineNullTerminatedString("TES4")
+        val string = NullTerminatedString("TES4")
 
         serializer.serialize(encoder, string)
 
         val result = buffer.readByteArray()
-        assertEquals(result.size, string.value.length + 1)
+        assertEquals(result.size, string.string.length + 1)
     }
 
     @Test
     fun `deserializable test`() {
-        val inlineString = InlineNullTerminatedString("TES4")
-        val serializer = InlineNullTerminatedString.serializer()
+        val inlineString = NullTerminatedString("TES4")
+        val serializer = NullTerminatedString.serializer()
         val buffer = Buffer()
 
         val encoder = BethesdaBufferEncoder(buffer)

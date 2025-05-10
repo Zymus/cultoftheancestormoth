@@ -1,0 +1,1 @@
+package games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes

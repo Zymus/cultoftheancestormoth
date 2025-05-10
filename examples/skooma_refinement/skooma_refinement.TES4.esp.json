@@ -1,0 +1,11 @@
+[
+  { "name": "HEDR", "value": { "version": 1.7 } },
+  { "name": "CNAM", "value": "Zymus" },
+  { "name": "SNAM", "value": "TES4 JSON Example" },
+  { "name": "MAST", "value": "Skyrim.esm" },
+  { "name": "DATA", "value": 0 },
+  { "name": "MAST", "value": "Update.esm" },
+  { "name": "DATA", "value": 0 },
+  { "name": "MAST", "value": "Hearthfires.esm" },
+  { "name": "DATA", "value": 0 }
+]

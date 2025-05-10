@@ -1,0 +1,3 @@
+package games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes
+
+class Ammo

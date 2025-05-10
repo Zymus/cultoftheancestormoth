@@ -1,8 +1,12 @@
 rootProject.name = "cultoftheancestormoth"
 
 include(
+    ":bytestring-serializer",
     ":cotam",
-    ":model",
+//    ":ktor-record-api",
+//    ":rom",
     ":serialization",
+    ":serialization-html",
+    ":terraform:azure-devops-project",
     ":web"
 )

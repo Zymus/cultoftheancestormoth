@@ -1,12 +1,12 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
+import js.typedarrays.toUint8Array
+
 val textDecoder = js("new TextDecoder('${WINDOWS_1252_CHARSET_NAME}')")
 
-actual fun ByteArray.fromWindows1252ByteArray(): String =
-    textDecoder.decode(this) as String
+actual fun ByteArray.decodeWindows1252String(): String =
+    textDecoder.decode(toUint8Array().buffer) as String
 
-actual fun BethesdaBufferEncoder.encodeWindows1252String(
-    value: String
-) {
-    encodeBytes(value.encodeToByteArray())
+actual fun String.toWindows1252ByteArray(): ByteArray {
+    TODO()
 }

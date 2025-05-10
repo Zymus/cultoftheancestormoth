@@ -3,16 +3,22 @@ package games.studiohummingbird.cultoftheancestormoth.serialization.annotations
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.PROPERTY
 
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
-@Target(AnnotationTarget.PROPERTY)
+@Target(PROPERTY, CLASS)
 annotation class FieldAnnotation(val name: String)
 
-@ExperimentalSerializationApi
-fun SerialDescriptor.isField(index: Int): Boolean =
-    getElementAnnotations(index).any { it is FieldAnnotation }
+@OptIn(ExperimentalSerializationApi::class)
+val SerialDescriptor.isField: Boolean
+    get() = annotations.filterIsInstance<FieldAnnotation>().any()
 
-@ExperimentalSerializationApi
-fun SerialDescriptor.getFieldAnnotation(index: Int): FieldAnnotation =
-    getElementAnnotations(index).single { it is FieldAnnotation } as FieldAnnotation
+@OptIn(ExperimentalSerializationApi::class)
+val SerialDescriptor.field: FieldAnnotation
+    get() = annotations.filterIsInstance<FieldAnnotation>().single()
+
+@OptIn(ExperimentalSerializationApi::class)
+fun SerialDescriptor.elementIsField(index: Int): Boolean =
+    getElementAnnotations(index).filterIsInstance<FieldAnnotation>().any()

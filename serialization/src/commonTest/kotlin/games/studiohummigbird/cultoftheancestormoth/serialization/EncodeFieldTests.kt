@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeField
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeSerializableField
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeToByteArray
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
+import kotlinx.serialization.builtins.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,21 +28,12 @@ class EncodeFieldTests {
 
     @Test
     fun `encode int field called data`() {
-        val fieldBytes = encodeToByteArray {
-            encodeField("data") {
-                encodeInt(26)
-            }
-        }
-
-        println(fieldBytes.toHexString())
-        assertEquals(10, fieldBytes.size)
-    }
-
-    @Test
-    fun `encode serializable int field called data`() {
-        val fieldBytes = encodeToByteArray {
-            encodeSerializableField("data", 26)
-        }
+        val fieldBytes = PluginFormat.encodeToByteArray(
+            FieldSerializer<Int>(Int.serializer()),
+            Field(
+                TypeTag("data"),
+                26
+            ))
 
         println(fieldBytes.toHexString())
         assertEquals(10, fieldBytes.size)

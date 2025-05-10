@@ -1,0 +1,16 @@
+version: 1
+dn: edid=WeapTypeIron,grup=KYWD
+objectClass: pluginRecord
+objectClass: keyword
+timestamp:
+versionControl:
+version:
+unknown:
+edid: WeapTypeIron
+color: 00ff00
+#00ff00, 255, {red:1.0,green:1.0,blue:1.0} are all different representations of a color
+#and use different serializers
+#<article>
+#
+#</article>
+#is also a different representation

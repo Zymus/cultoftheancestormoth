@@ -1,10 +1,8 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.BethesdaBufferEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.FieldAnnotation
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.RecordAnnotation
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.InlineNullTerminatedString
-import games.studiohummingbird.cultoftheancestormoth.serialization.encodeField
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
@@ -40,10 +38,10 @@ class Condition
 data class ALCH
 (
     @FieldAnnotation("EDID")
-    val editorId: InlineNullTerminatedString = InlineNullTerminatedString(""),
+    val editorId: NullTerminatedString = NullTerminatedString(""),
 
     @FieldAnnotation("FULL")
-    val name: InlineNullTerminatedString = InlineNullTerminatedString(""),
+    val name: NullTerminatedString = NullTerminatedString(""),
     val keywords: Set<KYWD> = emptySet(),
     val model: String/*MODL*/ = "",
     val useSound: String = "",
@@ -53,33 +51,3 @@ data class ALCH
     val enchantedItem: EnchantedItem,
     val effects: List<Effect>? = null
 )
-
-@OptIn(ExperimentalSerializationApi::class)
-fun BethesdaBufferEncoder.encodePotion(potion: ALCH) {
-    encodeField("EDID") { encodeSerializableValue(InlineNullTerminatedString.serializer(), potion.editorId) }
-    encodeField("OBND") { repeat(6) { encodeShort(0) } }
-    encodeField("FULL") { encodeSerializableValue(InlineNullTerminatedString.serializer(), potion.name) }
-    encodeField("DATA") { encodeFloat(potion.weight) }
-    encodeField("ENIT") {
-        val potionValue = 0
-        val flags = 0
-        val addiction = 0
-        val addictionChance = 0
-        val useSoundFormId = 0
-
-        encodeInt(potionValue)
-        encodeInt(flags)
-        encodeInt(addiction)
-        encodeInt(addictionChance)
-        encodeInt(useSoundFormId)
-    }
-
-    potion.effects?.forEach {
-        encodeField("EFID") { encodeInt(it.effectId.toInt()) }
-        encodeField("EFIT") {
-            encodeFloat(it.effectParams.magnitude)
-            encodeInt(it.effectParams.areaOfEffect.toInt())
-            encodeInt(it.effectParams.duration.toInt())
-        }
-    }
-}
