@@ -43,7 +43,7 @@ class GroupSerializer : KSerializer<Group> {
             val header = decodeSerializableElement(descriptor, 0, GroupHeader.serializer())
             val groupValueBytes = decoder.decodeByteString(header.groupSize.uint.toInt() - 24)
 
-            if (groupValueBytes.size == 0) {
+            if (header.groupSize.uint == 0.toUInt()) {
                 return@decodeStructure Group(header, Records(emptyList()))
             }
 
@@ -51,7 +51,7 @@ class GroupSerializer : KSerializer<Group> {
                 when (header.groupProperties.groupType) {
                     0 -> when (header.groupProperties.label.string) {
                         "CELL" -> {
-                            PluginFormat.decodeFromByteString(RecordAndGroup.serializer(), groupValueBytes)
+                            PluginFormat.decodeFromByteString(Group.serializer(), groupValueBytes)
                         }
                         else -> PluginFormat.decodeFromByteString(Records.serializer(), groupValueBytes)
                     }

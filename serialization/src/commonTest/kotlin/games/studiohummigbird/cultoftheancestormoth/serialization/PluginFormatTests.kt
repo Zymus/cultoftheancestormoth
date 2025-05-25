@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
@@ -362,8 +361,8 @@ class PluginFormatTests {
             "RFCT",
             "REGN",
             "NAVI",
-//            "CELL",// has sub groups in the groups, under first record.
-//            "WRLD",
+            "CELL",// has sub groups in the groups, under first record.
+            "WRLD",
 //            "DIAL",
 //            "QUST",
 //            "IDLE",
@@ -423,34 +422,32 @@ class PluginFormatTests {
 //            "COLL",
 //            "CLFM",
 //            "REVB"
-        ).map { groupName ->
+        ).forEach { groupName ->
             val group = PluginFormat.decodeFromSource(Group.serializer(), encoded)
             assertEquals(groupName, group.header.groupProperties.label.string)
             group.records.list.forEach { record ->
                 assertEquals(groupName, record.header.recordType.typeTag.string)
             }
             println("verified $groupName")
-
-            group
         }
-            .single { it.header.groupProperties.label.string == "AMMO" }
-            .also { println(it.header.groupSize) }
-            .also { println(it.records.list.size) }
-            .run {
-                records.list
-                    .apply { assertEquals(35, size) }
-                    .flatMap { it.fields }
-                    .filter { it.fieldType.typeTag.string == "EDID" }
-                    .map { PluginFormat.decodeFromByteString<NullTerminatedString>(it.fieldValue.value) }
-//                    .forEach(::println)
-            }
+//            .single { it.header.groupProperties.label.string == "AMMO" }
+//            .also { println(it.header.groupSize) }
+//            .also { println(it.records.list.size) }
+//            .run {
+//                records.list
+//                    .apply { assertEquals(35, size) }
+//                    .flatMap { it.fields }
+//                    .filter { it.fieldType.typeTag.string == "EDID" }
+//                    .map { PluginFormat.decodeFromByteString<NullTerminatedString>(it.fieldValue.value) }
+////                    .forEach(::println)
+//            }
 
         encoded
             .run {
                 buildList {
-                    repeat(1) {// outermost group
-                        add(GroupHeader.serializer())// 0
-                    }
+//                    repeat(1) {// outermost group
+//                        add(GroupHeader.serializer())// 0
+//                    }
 //                    add(Record.serializer())// first CELL record in top-level group
 //                    add(GroupHeader.serializer())// header for cell children 6
 //                    add(Group.serializer())
@@ -460,28 +457,28 @@ class PluginFormatTests {
 //                    add(GroupHeader.serializer())// header for cell children 6
 //                    add(Group.serializer())
 //                    add(Group.serializer())
-                    listOf(
-                        listOf(2, 5, 6, 2, 6, 9, 5, 9, 5, 8),
-                        listOf(3, 7, 8, 4, 5, 5, 4, 5, 5, 7),
-                        listOf(7, 7, 6, 4, 3, 5, 4, 7, 5, 7),
-                        listOf(4, 7, 7, 6, 4, 6, 3, 4, 6, 6),
-                        listOf(1)
-                    ).forEach { subgroup ->
-//                        add(GroupHeader.serializer())// 2
-//                        subgroup.forEach { records ->
-////                            add(GroupHeader.serializer())// 3
-////                            repeat(records) {
-////                                add(RecordAndGroup.serializer())
-////                            }
-//                            add(Group.serializer())
-//                        }
-                        add(Group.serializer())
-                    }
+//                    listOf(
+//                        listOf(2, 5, 6, 2, 6, 9, 5, 9, 5, 8),
+//                        listOf(3, 7, 8, 4, 5, 5, 4, 5, 5, 7),
+//                        listOf(7, 7, 6, 4, 3, 5, 4, 7, 5, 7),
+//                        listOf(4, 7, 7, 6, 4, 6, 3, 4, 6, 6),
+//                        listOf(1)
+//                    ).forEach { subgroup ->
+////                        add(GroupHeader.serializer())// 2
+////                        subgroup.forEach { records ->
+//////                            add(GroupHeader.serializer())// 3
+//////                            repeat(records) {
+//////                                add(RecordAndGroup.serializer())
+//////                            }
+////                            add(Group.serializer())
+////                        }
+//                        add(Group.serializer())
+//                    }
+//
+//
+//                    add(Group.serializer())
 
-
-                    add(Group.serializer())
-
-                    repeat(3) {
+                    repeat(5) {
                         addAll(
                             listOf(
                                 TypeTag.serializer(),
@@ -500,8 +497,9 @@ class PluginFormatTests {
                         is GroupHeader -> {
                             listOf(
                                 "GroupHeader",
-                                it.groupProperties.label,
-                                it.groupProperties.groupType
+                                it.groupProperties.label.string,
+                                it.groupProperties.groupType,
+                                it.groupSize
                             ).joinToString(" ").also(::println)
                         }
 
@@ -555,7 +553,12 @@ class PluginFormatTests {
                             it.group.header.groupProperties.groupType
                         ).joinToString(" ").also(::println)
 
-                        else -> println("unknown $it")
+                        is TypeTag -> listOf(
+                            "TypeTag",
+                            it.string
+                        ).joinToString(" ").also(::println)
+
+                        else -> println("unknown ${it::class}")
                     }
                 }
             }
