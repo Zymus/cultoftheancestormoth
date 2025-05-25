@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.web
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Plugin
 import kotlinx.serialization.ExperimentalSerializationApi
 import react.FC
 import react.Props

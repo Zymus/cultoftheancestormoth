@@ -17,10 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.web
 
-import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringSerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import kotlinx.io.bytestring.ByteString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.serializer
@@ -261,11 +264,12 @@ val FieldViewer = FC<Props> {
                 }
 
                 val field = Field(
-                    typeTag = TypeTag(state.fieldName),
-                    value = ByteString(fieldData)
+                    FieldType(TypeTag(state.fieldName)),
+                    FieldSize(0),
+                    FieldValue(ByteString(fieldData))
                 )
 
-                val serializedField = PluginFormat.encodeToByteArray(FieldSerializer(ByteStringSerializer), field)
+                val serializedField = PluginFormat.encodeToByteArray(Field.serializer(), field)
 
                 summary {
                     +"Hexview (${serializedField.size} bytes)"

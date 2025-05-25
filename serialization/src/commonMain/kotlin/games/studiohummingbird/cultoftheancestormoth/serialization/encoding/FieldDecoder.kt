@@ -17,6 +17,8 @@
 */
 package games.studiohummingbird.cultoftheancestormoth.serialization.encoding
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
+
 interface FieldDecoder {
-    fun <T : Any> decodeField(): Field<T>
+    fun decodeField(): Field
 }

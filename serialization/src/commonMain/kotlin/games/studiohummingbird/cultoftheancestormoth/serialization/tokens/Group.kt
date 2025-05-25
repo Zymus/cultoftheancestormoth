@@ -15,11 +15,19 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package games.studiohummingbird.cultoftheancestormoth.serialization
+package games.studiohummingbird.cultoftheancestormoth.serialization.tokens
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupHeader
+import games.studiohummingbird.cultoftheancestormoth.serialization.GroupSerializer
+import kotlinx.serialization.Serializable
 
+@Serializable(with = GroupSerializer::class)
 data class Group(
     val header: GroupHeader,
-    val records: List<Record>
-)
+    val value: GroupValueToken
+) : PluginToken, GroupValueToken {
+    val records: Records
+        get() = value as? Records ?: Records(emptyList())
+
+    val subGroups: SubGroups
+        get() = value as? SubGroups ?: SubGroups(emptyList())
+}

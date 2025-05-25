@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth
 
 import com.github.ajalt.clikt.core.CliktCommand
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Plugin
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import kotlinx.serialization.decodeFromByteArray
 import java.nio.file.Files

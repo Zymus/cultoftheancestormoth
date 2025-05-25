@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummigbird.cultoftheancestormoth.serialization.recordtypes
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
 import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.TES4
 import kotlinx.io.Buffer
 import kotlinx.io.bytestring.toHexString
@@ -39,7 +40,7 @@ class TES4Tests {
         )
 
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         serializer<TES4.MasterFile>().serialize(encoder, masterFile)
 
         val result = buffer.readByteArray()
@@ -61,7 +62,7 @@ class TES4Tests {
         )
 
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         serializer<TES4>().serialize(encoder, tes4)
 
         val serializedResult = buffer.readByteString()

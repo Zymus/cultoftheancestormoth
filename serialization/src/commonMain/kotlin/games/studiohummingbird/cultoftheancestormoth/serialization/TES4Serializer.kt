@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.Record
 import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.TES4
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -27,19 +26,19 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 
-class TES4Serializer : KSerializer<Record<TES4>> {
+class TES4Serializer : KSerializer<TES4> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(SERIAL_NAME) {
         element<String>("recordType")
     }
 
     override fun serialize(
         encoder: Encoder,
-        value: Record<TES4>
+        value: TES4
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun deserialize(decoder: Decoder): Record<TES4> {
+    override fun deserialize(decoder: Decoder): TES4 {
         decoder.decodeStructure(descriptor) {
             // [ "TES4", [ flags, formId, timestamp, versionControl, recordVersion, unknown ] ],
         }

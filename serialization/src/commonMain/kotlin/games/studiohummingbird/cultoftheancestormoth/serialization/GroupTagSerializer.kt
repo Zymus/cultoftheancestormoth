@@ -1,5 +1,5 @@
 /**
-Cult of the Ancestor Moth (ByteStringSerializer.kt)
+Cult of the Ancestor Moth (GroupTagSerializer.kt)
 Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -15,34 +15,33 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package games.studiohummingbird.cultoftheancestormoth.bytestring.serializer
+package games.studiohummingbird.cultoftheancestormoth.serialization
 
-import kotlinx.io.bytestring.ByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupTag
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.StructureKind.OBJECT
 import kotlinx.serialization.descriptors.buildSerialDescriptor
-import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
 
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
-object ByteStringSerializer : KSerializer<ByteString> {
-    const val SERIAL_NAME = "games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteString"
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+object GroupTagSerializer : KSerializer<GroupTag> {
+    const val SERIAL_NAME: String = "games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupTag"
 
-    override val descriptor: SerialDescriptor = buildSerialDescriptor(SERIAL_NAME, StructureKind.LIST) {
-        element<Byte>("type")
+    override val descriptor: SerialDescriptor = buildSerialDescriptor(SERIAL_NAME, OBJECT)
+
+    override fun serialize(
+        encoder: Encoder,
+        value: GroupTag
+    ) {
+        encoder.encodeStructure(descriptor) { }
     }
 
-    override fun serialize(encoder: Encoder, value: ByteString) {
-        require(encoder is ByteStringEncoder)
-        encoder.encodeByteString(value)
-    }
-
-    override fun deserialize(decoder: Decoder): ByteString {
-        require(decoder is ByteStringDecoder)
-        return decoder.decodeByteString()
-    }
+    override fun deserialize(decoder: Decoder): GroupTag =
+        decoder.decodeStructure(descriptor) { GroupTag }
 }

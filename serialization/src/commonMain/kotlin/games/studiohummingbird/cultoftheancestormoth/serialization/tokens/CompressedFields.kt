@@ -5,6 +5,8 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 
-@Serializable
 @JvmInline
-value class FieldValue(val value: @Serializable(with = ByteStringSerializer::class) ByteString) : FieldToken
+@Serializable
+value class CompressedFields(
+    val byteString: @Serializable(with = ByteStringSerializer::class) ByteString
+) : RecordValueToken

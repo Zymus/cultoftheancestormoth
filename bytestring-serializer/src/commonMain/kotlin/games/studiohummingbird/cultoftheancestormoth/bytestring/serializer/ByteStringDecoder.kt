@@ -1,5 +1,5 @@
 /**
-Cult of the Ancestor Moth (SourceEncoder.kt)
+Cult of the Ancestor Moth (ByteStringDecoder.kt)
 Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -17,8 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.bytestring.serializer
 
-import kotlinx.io.Source
+import kotlinx.io.bytestring.ByteString
 
-interface SourceEncoder {
-    fun encodeBytesFromSource(source: Source)
+interface ByteStringDecoder {
+    fun decodeByteString(): ByteString
+
+    fun decodeByteString(byteCount: Int): ByteString
 }

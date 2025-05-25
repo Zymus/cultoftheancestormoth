@@ -17,13 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.web
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Plugin
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import js.buffer.ArrayBuffer
 import js.typedarrays.Int8Array
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import web.events.EventHandler
-import web.events.ProgressEvent
 import web.file.FileReader
 
 /**

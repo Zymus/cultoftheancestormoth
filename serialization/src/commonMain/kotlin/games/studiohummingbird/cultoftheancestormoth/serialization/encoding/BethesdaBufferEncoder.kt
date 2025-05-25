@@ -1,52 +1,56 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization.encoding
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isRecord
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.GroupTagSerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encodeWindows1252
 import kotlinx.io.Buffer
-import kotlinx.io.Sink
 import kotlinx.io.Source
+import kotlinx.io.bytestring.ByteString
 import kotlinx.io.indexOf
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
 
 @OptIn(ExperimentalSerializationApi::class)
-class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder() {
+class BethesdaBufferEncoder(
+    private val buffer: Buffer = Buffer(),
+    override val serializersModule: SerializersModule
+) : AbstractEncoder(), ByteStringEncoder {
 
-    override val serializersModule: SerializersModule = EmptySerializersModule()
-
-    private val byteSinkEncoder by lazy { ByteSinkEncoder(sink) }
-    private val littleEndianSinkEncoder by lazy { LittleEndianSinkEncoder(sink) }
-    private val stringEncoder by lazy { sink.encodeWindows1252() }
-    private val nullTerminatedStringEncoder by lazy { nullTerminatedStringEncoder(sink) }
+    private val byteSinkEncoder by lazy { ByteSinkEncoder(buffer) }
+    private val littleEndianSinkEncoder by lazy { LittleEndianSinkEncoder(buffer) }
+    private val stringEncoder by lazy { buffer.encodeWindows1252() }
+    private val nullTerminatedStringEncoder by lazy { nullTerminatedStringEncoder(buffer) }
 
     override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
-        println("beginCollection ${descriptor.serialName} $collectionSize")
+        when (descriptor.serialName) {
+            "Record with byte string" -> {
+            }
+        }
         return beginStructure(descriptor)
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        println("beginStructure ${descriptor.serialName}")
-        println("- kind=${descriptor.kind}")
-        println("- annotations=${descriptor.annotations}")
-        println("- elementsCount=${descriptor.elementsCount}")
-        println(". isRecord=${descriptor.isRecord()}")
-
-        return this
+        return when (descriptor.serialName) {
+            GroupTagSerializer.SERIAL_NAME -> {
+                encodeSerializableValue(serializersModule.serializer(), TypeTag("GRUP"))
+                this
+            }
+            else -> this
+        }
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
-        println("endStructure kind=${descriptor.kind} ${descriptor.serialName}")
     }
 
     override fun encodeInline(descriptor: SerialDescriptor): Encoder {
-        println("encodeInline $descriptor")
         return if (descriptor == NullTerminatedString.serializer().descriptor) {
             nullTerminatedStringEncoder
         }
@@ -69,10 +73,7 @@ class BethesdaBufferEncoder(private val sink: Sink = Buffer()) : AbstractEncoder
 
     override fun encodeString(value: String) = stringEncoder.encodeString(value)
 
-    fun encodeBytes(byteArray: ByteArray) {
-        println("encodeBytes size=${byteArray.size}")
-        sink.write(byteArray)
-    }
+    override fun encodeByteString(byteString: ByteString) = buffer.write(byteString.toByteArray())
 }
 
 /**

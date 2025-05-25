@@ -67,11 +67,9 @@ fun nullTerminatedStringDecoder(source: Source): Decoder =
         override fun decodeSequentially(): Boolean = true
 
         override fun decodeString(): String {
-            print("decodeString nullTerminated ")
             val stringBuffer = source.readUntil(0)
             val stringBytes = stringBuffer.readByteArray()
             val decodedString = stringBytes.decodeWindows1252String()
-            println(decodedString)
             return decodedString
         }
     }

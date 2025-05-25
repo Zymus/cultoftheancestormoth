@@ -17,9 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization.datatypes
 
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -33,7 +34,7 @@ class InlineNullTerminatedStringTests {
     fun `serializable test`() {
         val serializer = NullTerminatedString.serializer()
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         val string = NullTerminatedString("TES4")
 
         serializer.serialize(encoder, string)
@@ -48,10 +49,10 @@ class InlineNullTerminatedStringTests {
         val serializer = NullTerminatedString.serializer()
         val buffer = Buffer()
 
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         serializer.serialize(encoder, inlineString)
 
-        val decoder = BethesdaBufferDecoder(buffer)
+        val decoder = BethesdaBufferDecoder(buffer, polymorphicPrimitiveModule)
         val decodedString = serializer.deserialize(decoder)
 
         assertEquals(decodedString, inlineString)

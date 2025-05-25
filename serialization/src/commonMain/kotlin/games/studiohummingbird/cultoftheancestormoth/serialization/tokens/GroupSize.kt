@@ -1,6 +1,8 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization.tokens
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 @Serializable
-value class GroupSize(val int: Int) : GroupToken
+@JvmInline
+value class GroupSize(val uint: UInt) : GroupToken

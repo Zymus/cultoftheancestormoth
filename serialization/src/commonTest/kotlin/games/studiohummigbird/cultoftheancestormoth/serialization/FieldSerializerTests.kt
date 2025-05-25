@@ -17,37 +17,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
+import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
-import kotlinx.serialization.builtins.ByteArraySerializer
-import kotlinx.serialization.builtins.PairSerializer
-import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@ExperimentalSerializationApi
 @ExperimentalStdlibApi
 class FieldSerializerTests {
 
     private val fieldName = "DATA"
-    
+
     @Test
     fun `serializable field`() {
-        val serializer = FieldSerializer<ByteArray>(ByteArraySerializer())
+        val serializer = Field.serializer()
         val type = TypeTag("NAME")
         val data = ByteArray(5)
-        val field = Field(type, data)
+        val field = Field(
+            FieldType(type),
+            FieldSize(0),
+            FieldValue(PluginFormat.encodeToByteString(data)))
 
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
 
         serializer.serialize(encoder, field)
 
-        val typeLength = field.typeTag.string.length
+        val typeLength = field.fieldType.typeTag.string.length
         val sizeLength = 2
-        val bufferSize = field.value.size.toLong()
+        val bufferSize = field.fieldValue.value.size.toLong()
         val expectedSize = typeLength + sizeLength + bufferSize
 
         assertEquals(expectedSize, buffer.size)
@@ -55,10 +65,13 @@ class FieldSerializerTests {
 
     @Test
     fun `serializable int field`() {
-        val serializer = FieldSerializer<Int>(Int.serializer())
-        val intField = Field<Int>(TypeTag(fieldName), 26)
+        val serializer = Field.serializer()
+        val intField = Field(
+            FieldType(TypeTag(fieldName)),
+            FieldSize(0),
+            FieldValue(PluginFormat.encodeToByteString(26)))
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
 
         serializer.serialize(encoder, intField)
 
@@ -68,10 +81,13 @@ class FieldSerializerTests {
 
     @Test
     fun `serializable double field`() {
-        val serializer = FieldSerializer<Double>(Double.serializer())
-        val doubleField = Field<Double>(TypeTag(fieldName), 26.0)
+        val serializer = Field.serializer()
+        val doubleField = Field(
+            FieldType(TypeTag(fieldName)),
+            FieldSize(0),
+            FieldValue(PluginFormat.encodeToByteString(26.0)))
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
 
         serializer.serialize(encoder, doubleField)
 
@@ -81,10 +97,13 @@ class FieldSerializerTests {
 
     @Test
     fun `serializable string field`() {
-        val serializer = FieldSerializer<String>(String.serializer())
-        val stringField = Field<String>(TypeTag(fieldName), "Zymus")
+        val serializer = Field.serializer()
+        val stringField = Field(
+            FieldType(TypeTag(fieldName)),
+            FieldSize(0),
+            FieldValue(PluginFormat.encodeToByteString("Zymus")))
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
 
         serializer.serialize(encoder, stringField)
 
@@ -94,10 +113,13 @@ class FieldSerializerTests {
 
     @Test
     fun `serializable null terminated string field`() {
-        val serializer = FieldSerializer<NullTerminatedString>(NullTerminatedString.serializer())
-        val stringField = Field<NullTerminatedString>(TypeTag(fieldName), NullTerminatedString("Zymus"))
+        val serializer = Field.serializer()
+        val stringField = Field(
+            FieldType(TypeTag(fieldName)),
+            FieldSize(0),
+            FieldValue(PluginFormat.encodeToByteString(NullTerminatedString("Zymus"))))
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
 
         serializer.serialize(encoder, stringField)
 
@@ -106,16 +128,25 @@ class FieldSerializerTests {
     }
 
     @Test
-    fun `serializable string pair field`() {
-        val serializer = FieldSerializer(PairSerializer(String.serializer(), String.serializer()))
-        val stringPairField = Field(TypeTag(fieldName), "name" to "value")
+    fun `deserialize test`() {
+        val serializer = Field.serializer()
+        val stringPairField = Field(
+            FieldType(TypeTag(fieldName)),
+            FieldSize(4),
+            FieldValue(PluginFormat.encodeToByteString(26)))
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
-
+        val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         serializer.serialize(encoder, stringPairField)
 
-        val expectedLength = stringPairField.typeTag.string.length + 2 + stringPairField.value.first.length + stringPairField.value.second.length
-        assertEquals(expectedLength.toLong(), buffer.size)
-        println(buffer.readByteArray().contentToString())
+        // buffer now has serialized field
+
+        val decoder = BethesdaBufferDecoder(buffer, polymorphicPrimitiveModule)
+        val deserializedField = serializer.deserialize(decoder)
+
+        assertEquals(stringPairField.fieldType, deserializedField.fieldType)
+        assertEquals(stringPairField.fieldSize, deserializedField.fieldSize)
+        assertEquals(stringPairField.fieldValue, deserializedField.fieldValue)
+
+        assertEquals(0L, buffer.size)
     }
 }

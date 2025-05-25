@@ -1,5 +1,5 @@
 /**
-Cult of the Ancestor Moth (RecordFieldSerializer.kt)
+Cult of the Ancestor Moth (FieldSerializer.kt)
 Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -17,10 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringDecoder
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordField
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -28,34 +30,41 @@ import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
 
-class RecordFieldSerializer<T : Any>(
-    private val fieldValueSerializer: KSerializer<FieldValue<T>>
-) : KSerializer<RecordField<T>> {
+const val SERIAL_NAME = "games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field"
+
+class FieldSerializer : KSerializer<Field> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(SERIAL_NAME) {
-        element<FieldType>("type")
-        element<FieldSize>("size")
-        element("value", fieldValueSerializer.descriptor)
+        element<FieldType>("fieldType")
+        element<FieldSize>("fieldSize")
+        element<FieldValue>("fieldValue")
     }
 
     override fun serialize(
         encoder: Encoder,
-        value: RecordField<T>
+        value: Field
     ) {
-        TODO("Not yet implemented")
-    }
+        encoder.encodeStructure(descriptor) {
+            encodeSerializableElement(descriptor, 0, FieldType.serializer(), value.fieldType)
 
-    override fun deserialize(decoder: Decoder): RecordField<T> {
-        return decoder.decodeStructure(descriptor) {
-            val fieldType = decodeSerializableElement(descriptor, 0, FieldType.serializer())
-            val fieldSize = decodeSerializableElement(descriptor, 1, FieldSize.serializer())
-            val fieldValue = decodeSerializableElement(descriptor, 2, fieldValueSerializer)
+            val encodedFieldValue = PluginFormat.encodeToByteString(FieldValue.serializer(), value.fieldValue)
+            val fieldSize = FieldSize(encodedFieldValue.size)
+            encodeSerializableElement(descriptor, 1, FieldSize.serializer(), fieldSize)
 
-            RecordField(fieldType, fieldSize, fieldValue)
+            // currently double encoding, consider using encodedFieldvalue somehow
+            encodeSerializableElement(descriptor, 2, FieldValue.serializer(), value.fieldValue)
         }
     }
 
-    companion object {
-        const val SERIAL_NAME = "games.studiohummingbird.cultoftheancestormoth.serialization.RecordField"
+    override fun deserialize(decoder: Decoder): Field {
+        require(decoder is ByteStringDecoder)
+        return decoder.decodeStructure(descriptor) {
+            val fieldType = decodeSerializableElement(descriptor, 0, FieldType.serializer())
+            val fieldSize = decodeSerializableElement(descriptor, 1, FieldSize.serializer())
+            val byteString = decoder.decodeByteString(fieldSize.ushort.toInt())
+
+            Field(fieldType, fieldSize, FieldValue(byteString))
+        }
     }
 }

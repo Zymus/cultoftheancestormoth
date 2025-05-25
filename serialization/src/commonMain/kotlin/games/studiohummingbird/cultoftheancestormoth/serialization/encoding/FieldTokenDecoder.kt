@@ -1,5 +1,5 @@
 /**
-Cult of the Ancestor Moth (Record.kt)
+Cult of the Ancestor Moth (FieldTokenDecoder.kt)
 Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -15,12 +15,10 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package games.studiohummingbird.cultoftheancestormoth.serialization
+package games.studiohummingbird.cultoftheancestormoth.serialization.encoding
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordField
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldToken
 
-data class Record(
-    val header: RecordHeader,
-    val fields: List<RecordField<*>>
-)
+fun interface FieldTokenDecoder {
+    fun decodeFieldToken(): FieldToken
+}

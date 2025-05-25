@@ -17,17 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.RecordFieldSerializer
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
+import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
 import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
-import kotlinx.io.writeShortLe
 import kotlinx.io.writeString
+import kotlinx.io.writeUShortLe
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.builtins.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -38,21 +39,21 @@ class RecordFieldSerializerTests {
     @Test
     fun `deserialize`() {
         val typeTag = TypeTag("DATA")
-        val fieldSize: Short = 4
+        val fieldSize: UShort = 4.toUShort()
         val intValue = 26
         val buffer = Buffer().apply {
             writeString(typeTag.string)
-            writeShortLe(fieldSize)
+            writeUShortLe(fieldSize)
             writeIntLe(intValue)
         }
         val source: Source = buffer
-        val decoder = BethesdaBufferDecoder(source)
-        val serializer = RecordFieldSerializer(FieldValue.serializer(Int.serializer()))
+        val decoder = BethesdaBufferDecoder(source, polymorphicPrimitiveModule)
+        val serializer = Field.serializer()
 
         val deserialized = serializer.deserialize(decoder)
 
         assertEquals(typeTag, deserialized.fieldType.typeTag)
-        assertEquals(fieldSize, deserialized.fieldSize.short)
-        assertEquals(intValue, deserialized.fieldValue.value)
+        assertEquals(fieldSize, deserialized.fieldSize.ushort)
+        assertEquals(intValue, PluginFormat.decodeFromByteString(deserialized.fieldValue.value))
     }
 }

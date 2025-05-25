@@ -19,40 +19,57 @@ package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.Record
 import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlinx.io.readByteArray
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
-@OptIn(ExperimentalSerializationApi::class)
-object PluginFormat : BinaryFormat {
-    override val serializersModule: SerializersModule = EmptySerializersModule()
+@OptIn(ExperimentalSerializationApi::class, ExperimentalStdlibApi::class)
+object PluginFormat : BinaryFormat, BufferFormat {
+    override val serializersModule: SerializersModule = SerializersModule {
+        include(polymorphicPrimitiveModule)
+        include(recordValueTokenModule)
+    }
 
-    @OptIn(ExperimentalStdlibApi::class)
     override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
         val buffer = Buffer().apply { write(bytes) }
-        val decoder = BethesdaBufferDecoder(buffer)
-        return deserializer.deserialize(decoder)
+        val decoder = BethesdaBufferDecoder(buffer, serializersModule)
+        val deserializedFromBytes = deserializer.deserialize(decoder)
+        return deserializedFromBytes
+//            .also { println("${deserializer.descriptor} $it") }
     }
 
     override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
         val buffer = Buffer()
-        val encoder = BethesdaBufferEncoder(buffer)
-
-        when (value) {
-            is Plugin -> TODO()
-            is Group -> TODO()
-            is Record<*> -> TODO()
-            is Field<*> -> serializer.serialize(encoder, value)
-            else -> serializer.serialize(encoder, value)
+        val encoder = BethesdaBufferEncoder(buffer, serializersModule)
+        val serializedToBytes = run {
+            serializer.serialize(encoder, value)
+            buffer.readByteArray()
         }
+        return serializedToBytes
+//            .also { println("${serializer.descriptor} ${it.toHexString()}") }
+    }
 
-        return buffer.readByteArray()
+    override fun <T : Any> decodeFromSource(deserializer: DeserializationStrategy<T>, source: Source): T {
+        val decoder = BethesdaBufferDecoder(source, serializersModule)
+        val deserializedFromBytes = deserializer.deserialize(decoder)
+        return deserializedFromBytes
+//            .also(::println)
+    }
+
+    override fun <T : Any> encodeToSink(serializer: SerializationStrategy<T>, value: T): Sink {
+        val sink = Buffer()
+        val encoder = BethesdaBufferEncoder(sink, serializersModule)
+        val serializedToBytes = run {
+            serializer.serialize(encoder, value)
+            sink
+        }
+        return serializedToBytes
     }
 }
 

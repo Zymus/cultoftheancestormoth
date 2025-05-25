@@ -1,5 +1,5 @@
 /**
-    Cult of the Ancestor Moth (Plugin.kt)
+    Cult of the Ancestor Moth (TypeTagEncoder.kt)
     Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
     This program is free software: you can redistribute it and/or modify
@@ -15,11 +15,10 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-package games.studiohummingbird.cultoftheancestormoth.serialization
+package games.studiohummingbird.cultoftheancestormoth.serialization.encoding
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginHeader
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 
-data class Plugin(
-    val header: PluginHeader,
-    val groups: List<Group>
-)
+fun interface TypeTagEncoder {
+    fun encodeTypeTag(typeTag: TypeTag)
+}
