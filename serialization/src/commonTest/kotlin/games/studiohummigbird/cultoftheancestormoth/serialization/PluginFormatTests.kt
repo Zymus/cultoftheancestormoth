@@ -20,6 +20,7 @@ package games.studiohummigbird.cultoftheancestormoth.serialization
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CellRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
@@ -30,7 +31,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupP
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordAndGroup
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
@@ -362,7 +362,7 @@ class PluginFormatTests {
             "REGN",
             "NAVI",
             "CELL",// has sub groups in the groups, under first record.
-            "WRLD",
+//            "WRLD",
 //            "DIAL",
 //            "QUST",
 //            "IDLE",
@@ -478,6 +478,97 @@ class PluginFormatTests {
 //
 //                    add(Group.serializer())
 
+                    // WLRD stuff
+
+                    add(GroupHeader.serializer())// GRUP (WRLD) 0
+//
+//                    add(Record.serializer())// Main WRLD
+//                    add(GroupHeader.serializer())// GRUP (CELL) 1
+//                    add(CellRecord.serializer())
+////                    // the above chunk reads until GRUP 4
+////                    // the below chunk reads until the next WRLD record
+//////                    add(Record.serializer())// Main CELL
+//////                    add(Group.serializer())// GRUP 6
+//                    repeat(168) {
+//                        // group 4s
+//                        add(Group.serializer())
+//                    }
+
+                    // second WRLD
+//                    add(Record.serializer())// Main WRLD
+//                    add(GroupHeader.serializer())// GRUP (CELL) 1
+//                    add(CellRecord.serializer())
+//                    repeat(6) {
+//                        // group 4s
+//                        add(Group.serializer())
+//                    }
+
+                    // repeatable WRLD
+                    listOf(
+                        168,
+                        6,
+                        1
+                    ).forEach { group4Count ->
+                        add(Record.serializer())// Main WRLD
+                        add(GroupHeader.serializer())// GRUP (CELL) 1
+                        add(CellRecord.serializer())
+                        repeat(group4Count) {
+                            // group 4s
+                            add(Group.serializer())
+                        }
+                    }
+
+//                    repeat(2) {
+//                        add(Group.serializer())// GRUP 5 (groupHeader cellRecords)
+//                    }
+//                    add(GroupHeader.serializer())// HEADER 5
+//                    repeat(1) {
+//                        add(CellRecord.serializer())
+//                    }
+                    // / Top level (0)
+                    //   / Records
+                    //   / WRLD Children (1)
+                    //     / CELL Record
+                    //       / Cell Children (6)
+                    //         / Cell Persistent Children (8)
+                    //           / Record
+                    //         / Cell Temporary Children (9)
+                    //           / Record
+                    //   / (Interior | Exterior)
+                    //     / Cell Block (2 | 4)
+                    //       / Cell Sub Block (3 | 5)
+                    //         / Record
+                    //         / Cell Children (6)
+                    //           / Cell Persistent Children (8)
+                    //             / Record
+                    //           / Cell Temporary Children (9)
+                    //             / Record
+//                    listOf(
+//                        listOf(16),
+//                        listOf(16),
+//                        listOf(16),
+//                        listOf(4),
+//                        listOf(1),
+//                        listOf(4),
+//                        listOf(16),
+//                        listOf(16),
+//                        listOf(16),
+//                        listOf(16),
+//                        listOf(16),
+//                        listOf(10),
+//                    ).forEach { subgroup ->
+//                        add(GroupHeader.serializer())// GRUP 4 => GRUP 5
+//                        subgroup.forEach { records ->
+//                            repeat(records) {
+//                                add(Group.serializer())// GRUP 5 => CELL
+//                            }
+//                        }
+//                    }
+
+//                    add(GroupHeader.serializer())
+//                    add(Record.serializer())
+
+                    // next GRUP 1
                     repeat(5) {
                         addAll(
                             listOf(
@@ -490,77 +581,91 @@ class PluginFormatTests {
                             )
                         )
                     }
-                }.map {
-                    PluginFormat.decodeFromSource(it, this)
-                }.map {
-                    when (it) {
-                        is GroupHeader -> {
-                            listOf(
-                                "GroupHeader",
-                                it.groupProperties.label.string,
-                                it.groupProperties.groupType,
-                                it.groupSize
-                            ).joinToString(" ").also(::println)
-                        }
-
-                        is RecordHeader -> {
-                            println(" Record Header ${it.recordType.typeTag.string} size=${it.recordSize.int} isDataCompressed=${it.recordProperties.isDataCompressed}")
-                        }
-
-                        is Record -> {
-                            println("")
-                            println("Main Record ${it.header.recordType.typeTag.string} size=${it.header.recordSize.int} isDataCompressed=${it.header.recordProperties.isDataCompressed}")
-                        }
-
-                        is Group -> {
-                            println(
-                                listOf(
-                                    "Group",
-                                    it.header.groupProperties.label,
-                                    it.header.groupProperties.groupType,
-                                    "size=${it.header.groupSize.uint}",
-                                    "records=${it.records.list.size}",
-                                    "subGroups=${it.subGroups.list.size}"
-                                ).joinToString(" ")
-                            )
-                        }
-
-                        is Pair<*, *> -> {
-                            when (it.first) {
-                                is Record -> when (it.second) {
-                                    is Group -> {
-                                        listOf(
-                                            (it.first as Record).header.recordType.typeTag.string,
-                                            (it.second as Group).header.groupSize.uint,
-                                            (it.second as Group).records.list.size,
-                                            (it.second as Group).subGroups.list.size,
-                                            (it.second as Group).subGroups.list.map { sub -> sub.header.groupProperties.groupType }
-                                                .joinToString(" "),
-                                        )
-                                            .joinToString(" ")
-                                            .also(::println)
-                                    }
-                                }
-                            }
-                        }
-
-                        is UInt -> println("UInt ${it.toHexString()}")
-
-                        is RecordAndGroup -> listOf(
-                            "RecordAndGroup",
-                            it.record.header.recordType.typeTag.string,
-                            it.group.header.groupProperties.label.string,
-                            it.group.header.groupProperties.groupType
-                        ).joinToString(" ").also(::println)
-
-                        is TypeTag -> listOf(
-                            "TypeTag",
-                            it.string
-                        ).joinToString(" ").also(::println)
-
-                        else -> println("unknown ${it::class}")
-                    }
+                }.mapIndexed { index, it ->
+                    print("$index ")
+                    val deserialized = PluginFormat.decodeFromSource(it, this)
+                    println(debugString(deserialized))
                 }
             }
     }
+
+    private fun debugString(it: Any): String =
+        when (it) {
+            is GroupSize -> listOf(
+                "groupSize",
+                it.uint.toString()
+            ).joinToString(" ")
+
+            is GroupHeader -> {
+                listOf(
+                    "groupHeader",
+                    it.groupProperties.label.hashCode().toHexString(),
+                    "groupType",
+                    it.groupProperties.groupType,
+                    debugString(it.groupSize)
+                ).joinToString(" ")
+            }
+
+            is RecordSize -> listOf(
+                "recordSize",
+                it.int.toString()
+            ).joinToString(" ")
+
+            is RecordType -> listOf(
+                "recordType",
+                debugString(it.typeTag)
+            ).joinToString(" ")
+
+            is RecordHeader ->
+                listOf(
+                    "recordHeader",
+                    debugString(it.recordType),
+                    debugString(it.recordSize),
+                    "compressed",
+                    it.recordProperties.isDataCompressed
+                ).joinToString(" ")
+
+            is Record -> {
+                listOf(
+                    "record",
+                    debugString(it.header.recordType.typeTag),
+                    debugString(it.header.recordSize),
+                    "compressed",
+                    it.header.recordProperties.isDataCompressed,
+                ).joinToString(" ")
+            }
+
+            is Group -> {
+                listOf(
+                    "group",
+                    debugString(it.header),
+                    "records",
+                    it.records.list.size,
+                    "subgroups",
+                    "subGroupSizeSum",
+                    it.subGroups.list.sumOf { it.header.groupSize.uint },
+                    it.subGroups.list.joinToString(", ") { sub -> "${sub.header.groupProperties.groupType} ${sub.header.groupSize.uint}" },
+                    "cellRecords",
+                    it.cellRecords?.list?.size ?: "null"
+                ).joinToString(" ")
+            }
+
+            is UInt -> "UInt ${it.toHexString()}"
+
+            is CellRecord -> listOf(
+                "cellRecord",
+                debugString(it.cell.header.recordType),
+                debugString(it.children.header.groupProperties.label),
+                it.children.header.groupProperties.groupType,
+                debugString(it.children.header.groupSize)
+            ).joinToString(" ")
+
+            is TypeTag -> listOf(
+                "TypeTag",
+                it.hashCode().toHexString(),
+                it
+            ).joinToString(" ")
+
+            else -> "unknown ${it::class}"
+        }
 }

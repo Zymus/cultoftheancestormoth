@@ -30,4 +30,10 @@ data class Group(
 
     val subGroups: SubGroups
         get() = value as? SubGroups ?: SubGroups(emptyList())
+
+    val group: Group
+        get() = value as? Group ?: this
+
+    val cellRecords: CellRecords?
+        get() = value as? CellRecords
 }

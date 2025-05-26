@@ -20,7 +20,7 @@ package games.studiohummingbird.cultoftheancestormoth.serialization.tokens
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RecordAndGroup(
-    val record: Record,
-    val group: Group
+data class CellRecord(
+    val cell: Record,
+    val children: Group
 ) : GroupValueToken

@@ -4,12 +4,14 @@ import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteS
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringSerializer
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CellRecord
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CellRecords
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Group
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupValueToken
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordAndGroup
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Records
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.SubGroups
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -43,7 +45,7 @@ class GroupSerializer : KSerializer<Group> {
             val header = decodeSerializableElement(descriptor, 0, GroupHeader.serializer())
             val groupValueBytes = decoder.decodeByteString(header.groupSize.uint.toInt() - 24)
 
-            if (header.groupSize.uint == 0.toUInt()) {
+            if (header.groupSize.uint == 24.toUInt()) {
                 return@decodeStructure Group(header, Records(emptyList()))
             }
 
@@ -53,11 +55,16 @@ class GroupSerializer : KSerializer<Group> {
                         "CELL" -> {
                             PluginFormat.decodeFromByteString(Group.serializer(), groupValueBytes)
                         }
+                        "WRLD" -> {
+                            PluginFormat.decodeFromByteString(CellRecord.serializer(), groupValueBytes)
+                        }
                         else -> PluginFormat.decodeFromByteString(Records.serializer(), groupValueBytes)
                     }
                     2 -> PluginFormat.decodeFromByteString(Group.serializer(), groupValueBytes)
-                    3 -> PluginFormat.decodeFromByteString(RecordAndGroup.serializer(), groupValueBytes)
-                    6 -> PluginFormat.decodeFromByteString(Group.serializer(), groupValueBytes)
+                    4 -> PluginFormat.decodeFromByteString(SubGroups.serializer(), groupValueBytes)
+                    5 -> PluginFormat.decodeFromByteString(CellRecords.serializer(), groupValueBytes)
+                    3 -> PluginFormat.decodeFromByteString(CellRecord.serializer(), groupValueBytes)
+                    6 -> PluginFormat.decodeFromByteString(SubGroups.serializer(), groupValueBytes)
                     8, 9 -> PluginFormat.decodeFromByteString(Records.serializer(), groupValueBytes)
                     else -> PluginFormat.decodeFromByteString(Records.serializer(), groupValueBytes)
                 }

@@ -21,13 +21,12 @@ import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteS
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringSerializer
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CompressedFields
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Group
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupValueToken
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordAndGroup
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CellRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordValueToken
@@ -71,7 +70,7 @@ val groupValueTokenModule = SerializersModule {
         subclass(Records::class, Records.serializer())
         subclass(SubGroups::class, SubGroups.serializer())
         subclass(Group::class, Group.serializer())
-        subclass(RecordAndGroup::class, RecordAndGroup.serializer())
+        subclass(CellRecord::class, CellRecord.serializer())
     }
 }
 
@@ -87,25 +86,14 @@ class RecordSerializer() : KSerializer<Record> {
             val header = decodeSerializableElement(descriptor, 0, RecordHeader.serializer())
             val recordFieldsBytes = decoder.decodeByteString(header.recordSize.int)
 
-            if (header.recordProperties.isDataCompressed) {
-                return@decodeStructure Record(
-                    header,
-                PluginFormat.decodeFromByteString(CompressedFields.serializer(), recordFieldsBytes)
-                )
-            }
-
-            val nextTypeTag = PluginFormat.decodeFromByteString(TypeTag.serializer(), recordFieldsBytes)
-            if (nextTypeTag == header.recordType.typeTag) {
-                return@decodeStructure Record(
-                    header,
-                    PluginFormat.decodeFromByteString(SubGroups.serializer(), recordFieldsBytes)
-                )
-            } else {
-                return@decodeStructure Record(
-                    header,
+            val recordValue: RecordValueToken =
+                if (header.recordProperties.isDataCompressed) {
+                    PluginFormat.decodeFromByteString(CompressedFields.serializer(), recordFieldsBytes)
+                } else {
                     PluginFormat.decodeFromByteString(Fields.serializer(), recordFieldsBytes)
-                )
-            }
+                }
+
+            Record(header, recordValue)
         }
     }
 
