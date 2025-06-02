@@ -52,7 +52,7 @@ class InlineNullTerminatedStringTests {
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         serializer.serialize(encoder, inlineString)
 
-        val decoder = BethesdaBufferDecoder(buffer, polymorphicPrimitiveModule)
+        val decoder = BethesdaBufferDecoder(buffer, polymorphicPrimitiveModule, serializer.descriptor)
         val decodedString = serializer.deserialize(decoder)
 
         assertEquals(decodedString, inlineString)

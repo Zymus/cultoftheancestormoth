@@ -20,27 +20,29 @@ package games.studiohummigbird.cultoftheancestormoth.serialization
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CellRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Group
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GRUP
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupTag
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginRecord
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginToken
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordType
-import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -172,15 +174,6 @@ class PluginFormatTests {
     }
 
     @Test
-    fun `format record type`() {
-        val encoded = PluginFormat.encodeToByteArray(TEST_RECORD_TYPE)
-        val decoded: RecordType = PluginFormat.decodeFromByteArray(encoded)
-
-        assertEquals(4, encoded.size)
-        assertEquals(TEST_RECORD_TYPE, decoded)
-    }
-
-    @Test
     fun `format record size`() {
         val encoded = PluginFormat.encodeToByteArray(TEST_RECORD_SIZE)
         val decoded: RecordSize = PluginFormat.decodeFromByteArray(encoded)
@@ -204,7 +197,7 @@ class PluginFormatTests {
         val decoded: Record = PluginFormat.decodeFromByteArray(encoded)
 
         assertEquals(34, encoded.size)
-        assertEquals(TEST_RECORD_TYPE, decoded.header.recordType)
+        assertEquals(TEST_TYPE_TAG, decoded.tag)
         assertEquals(10, decoded.header.recordSize.int)
         assertEquals(TEST_RECORD_PROPERTIES, decoded.header.recordProperties)
     }
@@ -215,29 +208,9 @@ class PluginFormatTests {
         val decoded: Record = PluginFormat.decodeFromByteArray(encoded)
 
         assertEquals(34, encoded.size)
-        assertEquals(TEST_RECORD_TYPE, decoded.header.recordType)
+        assertEquals(TEST_TYPE_TAG, decoded.tag)
         assertEquals(10, decoded.header.recordSize.int)
         assertEquals(TEST_RECORD_PROPERTIES, decoded.header.recordProperties)
-    }
-
-    @Test
-    fun `format record of subgroups`() {
-        val encoded = PluginFormat.encodeToByteArray(TEST_RECORD_GROUP)
-        println(encoded.toHexString())
-        val decoded: Record = PluginFormat.decodeFromByteArray(encoded)
-
-        assertEquals(24, encoded.size)
-
-//        assertEquals(1, decoded.value.list.size)
-    }
-
-    @Test
-    fun `format group tag`() {
-        val encoded = PluginFormat.encodeToByteArray(GroupTag)
-        val decoded: GroupTag = PluginFormat.decodeFromByteArray(encoded)
-
-        assertEquals(4, encoded.size)
-        assertEquals(GroupTag, decoded)
     }
 
     @Test
@@ -268,20 +241,6 @@ class PluginFormatTests {
     }
 
     @Test
-    fun `format group`() {
-        val encoded = PluginFormat.encodeToByteArray(TEST_GROUP).run { Buffer().apply { write(this@run) } }
-//        PluginFormat.decodeFromSource(GroupHeader.serializer(), encoded)
-//        PluginFormat.decodeFromSource(RecordHeader.serializer(), encoded)
-//        PluginFormat.decodeFromSource(Field.serializer(), encoded)
-//        PluginFormat.decodeFromSource(Record.serializer(Fields.serializer()), encoded)
-//        PluginFormat.decodeFromSource(Records.serializer(), encoded)
-        val decoded = PluginFormat.decodeFromSource(Group.serializer(), encoded)
-
-//        assertEquals(58, encoded.size)
-//        assertEquals(TEST_GROUP, decoded)
-    }
-
-    @Test
     fun `read TES4 from Skyrim esm`() {
         val encoded = SystemFileSystem
             // /media/zymus/5516E98402BDA1A5/SteamLibrary/steamapps/common/Skyrim Special Edition/Data
@@ -301,7 +260,8 @@ class PluginFormatTests {
             )
             .buffered()
 
-        val decoded: Record = PluginFormat.decodeFromSource(Record.serializer(), encoded)
+        val decoded: PluginToken = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded)
+            .also { println("verified TES4") }
 
         val groups = listOf(
             "GMST",
@@ -362,73 +322,68 @@ class PluginFormatTests {
             "REGN",
             "NAVI",
             "CELL",// has sub groups in the groups, under first record.
-//            "WRLD",
-//            "DIAL",
-//            "QUST",
-//            "IDLE",
-//            "PACK",
-//            "CSTY",
-//            "LSCR",
-//            "LVSP",
-//            "ANIO",
-//            "WATR",
-//            "EFSH",
-//            "EXPL",
-//            "DEBR",
-//            "IMGS",
-//            "IMAD",
-//            "FLST",
-//            "PERK",
-//            "BPTD",
-//            "ADDN",
-//            "AVIF",
-//            "CAMS",
-//            "CPTH",
-//            "VTYP",
-//            "MATT",
-//            "IPCT",
-//            "IPDS",
-//            "ARMA",
-//            "ECZN",
-//            "LCTN",
-//            "MESG",
-//            "RGDL",
-//            "DOBJ",
-//            "LGTM",
-//            "MUSC",
-//            "FSTP",
-//            "FSTS",
-//            "SMBN",
-//            "SMQN",
-//            "SMEN",
-//            "DLBR",
-//            "MUST",
-//            "DLVW",
-//            "WOOP",
-//            "SHOU",
-//            "EQUP",
-//            "RELA",
-//            "SCEN",
-//            "ASTP",
-//            "OTFT",
-//            "ARTO",
-//            "MATO",
-//            "MOVT",
-//            "HAZD",
-//            "SNDR",
-//            "DUAL",
-//            "SNCT",
-//            "SOPM",
-//            "COLL",
-//            "CLFM",
-//            "REVB"
+            "WRLD",
+            "DIAL",
+            "QUST",
+            "IDLE",
+            "PACK",
+            "CSTY",
+            "LSCR",
+            "LVSP",
+            "ANIO",
+            "WATR",
+            "EFSH",
+            "EXPL",
+            "DEBR",
+            "IMGS",
+            "IMAD",
+            "FLST",
+            "PERK",
+            "BPTD",
+            "ADDN",
+            "AVIF",
+            "CAMS",
+            "CPTH",
+            "VTYP",
+            "MATT",
+            "IPCT",
+            "IPDS",
+            "ARMA",
+            "ECZN",
+            "LCTN",
+            "MESG",
+            "RGDL",
+            "DOBJ",
+            "LGTM",
+            "MUSC",
+            "FSTP",
+            "FSTS",
+            "SMBN",
+            "SMQN",
+            "SMEN",
+            "DLBR",
+            "MUST",
+            "DLVW",
+            "WOOP",
+            "SHOU",
+            "EQUP",
+            "RELA",
+            "SCEN",
+            "ASTP",
+            "OTFT",
+            "ARTO",
+            "MATO",
+            "MOVT",
+            "SNDR",
+            "DUAL",
+            "SNCT",
+            "SOPM",
+            "COLL",
+            "CLFM",
+            "REVB"
         ).forEach { groupName ->
-            val group = PluginFormat.decodeFromSource(Group.serializer(), encoded)
-            assertEquals(groupName, group.header.groupProperties.label.string)
-            group.records.list.forEach { record ->
-                assertEquals(groupName, record.header.recordType.typeTag.string)
-            }
-            println("verified $groupName")
+            val group = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded) as GRUP
+            println("verified ${debugString(group.header)} ${group.children.mapNotNull { it as? PluginRecord }.mapNotNull { it.fields as? Fields }.map { it.list.first() }.joinToString()}")
         }
 //            .single { it.header.groupProperties.label.string == "AMMO" }
 //            .also { println(it.header.groupSize) }
@@ -444,46 +399,14 @@ class PluginFormatTests {
 
         encoded
             .run {
-                buildList {
-//                    repeat(1) {// outermost group
-//                        add(GroupHeader.serializer())// 0
-//                    }
-//                    add(Record.serializer())// first CELL record in top-level group
-//                    add(GroupHeader.serializer())// header for cell children 6
-//                    add(Group.serializer())
-//                    add(Group.serializer())
-//
-//                    add(Record.serializer())// first CELL record in top-level group
-//                    add(GroupHeader.serializer())// header for cell children 6
-//                    add(Group.serializer())
-//                    add(Group.serializer())
-//                    listOf(
-//                        listOf(2, 5, 6, 2, 6, 9, 5, 9, 5, 8),
-//                        listOf(3, 7, 8, 4, 5, 5, 4, 5, 5, 7),
-//                        listOf(7, 7, 6, 4, 3, 5, 4, 7, 5, 7),
-//                        listOf(4, 7, 7, 6, 4, 6, 3, 4, 6, 6),
-//                        listOf(1)
-//                    ).forEach { subgroup ->
-////                        add(GroupHeader.serializer())// 2
-////                        subgroup.forEach { records ->
-//////                            add(GroupHeader.serializer())// 3
-//////                            repeat(records) {
-//////                                add(RecordAndGroup.serializer())
-//////                            }
-////                            add(Group.serializer())
-////                        }
-//                        add(Group.serializer())
-//                    }
-//
-//
-//                    add(Group.serializer())
-
+                buildList<KSerializer<out Any>> {
                     // WLRD stuff
 
-                    add(GroupHeader.serializer())// GRUP (WRLD) 0
-//
+//                    add(GroupHeader.serializer())// GRUP (WRLD) 0
 //                    add(Record.serializer())// Main WRLD
-//                    add(GroupHeader.serializer())// GRUP (CELL) 1
+//
+//                    add(GroupHeader.serializer())// GRUP 0 CELL
+//                    cellBlock()
 //                    add(CellRecord.serializer())
 ////                    // the above chunk reads until GRUP 4
 ////                    // the below chunk reads until the next WRLD record
@@ -503,28 +426,31 @@ class PluginFormatTests {
 //                        add(Group.serializer())
 //                    }
 
-                    // repeatable WRLD
-                    listOf(
-                        168,
-                        6,
-                        1
-                    ).forEach { group4Count ->
-                        add(Record.serializer())// Main WRLD
-                        add(GroupHeader.serializer())// GRUP (CELL) 1
-                        add(CellRecord.serializer())
-                        repeat(group4Count) {
-                            // group 4s
-                            add(Group.serializer())
-                        }
-                    }
+//                     repeatable WRLD
+//                    listOf(
+//                        168,
+//                        6,
+//                        3
+//                    ).forEach { size ->
+//                        world(size)
+//                    }
 
-//                    repeat(2) {
-//                        add(Group.serializer())// GRUP 5 (groupHeader cellRecords)
-//                    }
-//                    add(GroupHeader.serializer())// HEADER 5
-//                    repeat(1) {
-//                        add(CellRecord.serializer())
-//                    }
+//                    add(GroupHeader.serializer())// 4
+//                    add(GroupHeader.serializer())// 5 (EMPTY)
+//                    add(GroupHeader.serializer())// 5 (NOT-EMPTY)
+//                    add(CellRecord.serializer())// CELL
+//
+//                    add(CellBlock.serializer())// 4
+//                    world(1)
+
+                    // is it because 4 must be the parent of 5?
+
+                    // from aboe
+                    // 4
+                    // 4, but the, there is another 4, not part of the group
+                    //
+
+
                     // / Top level (0)
                     //   / Records
                     //   / WRLD Children (1)
@@ -568,19 +494,7 @@ class PluginFormatTests {
 //                    add(GroupHeader.serializer())
 //                    add(Record.serializer())
 
-                    // next GRUP 1
-                    repeat(5) {
-                        addAll(
-                            listOf(
-                                TypeTag.serializer(),
-                                UInt.serializer(),
-                                UInt.serializer(),
-                                UInt.serializer(),
-                                UInt.serializer(),
-                                UInt.serializer(),
-                            )
-                        )
-                    }
+//                    repeatPeek(5)
                 }.mapIndexed { index, it ->
                     print("$index ")
                     val deserialized = PluginFormat.decodeFromSource(it, this)
@@ -599,7 +513,7 @@ class PluginFormatTests {
             is GroupHeader -> {
                 listOf(
                     "groupHeader",
-                    it.groupProperties.label.hashCode().toHexString(),
+                    debugString(it.groupProperties.label),
                     "groupType",
                     it.groupProperties.groupType,
                     debugString(it.groupSize)
@@ -619,7 +533,6 @@ class PluginFormatTests {
             is RecordHeader ->
                 listOf(
                     "recordHeader",
-                    debugString(it.recordType),
                     debugString(it.recordSize),
                     "compressed",
                     it.recordProperties.isDataCompressed
@@ -628,44 +541,94 @@ class PluginFormatTests {
             is Record -> {
                 listOf(
                     "record",
-                    debugString(it.header.recordType.typeTag),
+                    debugString(it.tag),
+                    it.header.recordProperties.recordId.toHexString(),
                     debugString(it.header.recordSize),
                     "compressed",
                     it.header.recordProperties.isDataCompressed,
                 ).joinToString(" ")
             }
 
-            is Group -> {
-                listOf(
-                    "group",
-                    debugString(it.header),
-                    "records",
-                    it.records.list.size,
-                    "subgroups",
-                    "subGroupSizeSum",
-                    it.subGroups.list.sumOf { it.header.groupSize.uint },
-                    it.subGroups.list.joinToString(", ") { sub -> "${sub.header.groupProperties.groupType} ${sub.header.groupSize.uint}" },
-                    "cellRecords",
-                    it.cellRecords?.list?.size ?: "null"
-                ).joinToString(" ")
-            }
-
             is UInt -> "UInt ${it.toHexString()}"
-
-            is CellRecord -> listOf(
-                "cellRecord",
-                debugString(it.cell.header.recordType),
-                debugString(it.children.header.groupProperties.label),
-                it.children.header.groupProperties.groupType,
-                debugString(it.children.header.groupSize)
-            ).joinToString(" ")
 
             is TypeTag -> listOf(
                 "TypeTag",
-                it.hashCode().toHexString(),
-                it
+                if (it.string.all { it.isLetter() || it == '_' }) {
+                    it.string
+                } else {
+                    it.string.hashCode().toHexString()
+                }
             ).joinToString(" ")
 
             else -> "unknown ${it::class}"
         }
+
+    private fun MutableList<KSerializer<out Any>>.repeatPeek(times: Int) {
+        // preview peek
+        repeat(times) {
+            addAll(
+                listOf(
+                    TypeTag.serializer(),
+                    UInt.serializer(),
+                    UInt.serializer(),
+                    UInt.serializer(),
+                    UInt.serializer(),
+                    UInt.serializer(),
+                )
+            )
+        }
+    }
+
+    private fun MutableList<KSerializer<out Any>>.cellRecord() {
+    }
+
+    private fun MutableList<KSerializer<out Any>>.topLevelCellGroup() {
+//                    repeat(1) {// outermost group
+//                        add(GroupHeader.serializer())// 0
+//                    }
+//                    add(Record.serializer())// first CELL record in top-level group
+//                    add(GroupHeader.serializer())// header for cell children 6
+//                    add(Group.serializer())
+//                    add(Group.serializer())
+//
+//                    add(Record.serializer())// first CELL record in top-level group
+//                    add(GroupHeader.serializer())// header for cell children 6
+//                    add(Group.serializer())
+//                    add(Group.serializer())
+//                    listOf(
+//                        listOf(2, 5, 6, 2, 6, 9, 5, 9, 5, 8),
+//                        listOf(3, 7, 8, 4, 5, 5, 4, 5, 5, 7),
+//                        listOf(7, 7, 6, 4, 3, 5, 4, 7, 5, 7),
+//                        listOf(4, 7, 7, 6, 4, 6, 3, 4, 6, 6),
+//                        listOf(1)
+//                    ).forEach { subgroup ->
+////                        add(GroupHeader.serializer())// 2
+////                        subgroup.forEach { records ->
+//////                            add(GroupHeader.serializer())// 3
+//////                            repeat(records) {
+//////                                add(RecordAndGroup.serializer())
+//////                            }
+////                            add(Group.serializer())
+////                        }
+//                        add(Group.serializer())
+//                    }
+//
+//
+//                    add(Group.serializer())
+    }
+
+    private fun MutableList<KSerializer<out Any>>.world(size: Int) {
+        add(Record.serializer())// Main WRLD
+//        add(Group.serializer())
+        add(GroupHeader.serializer())// GRUP (CELL) 1
+        cellRecord()
+        repeat(size) {
+            // group 4s
+        }
+    }
+
+    private fun MutableList<KSerializer<out Any>>.cellBlock() {
+        add(GroupHeader.serializer())
+        add(GroupHeader.serializer())
+    }
 }

@@ -5,4 +5,4 @@ import kotlin.jvm.JvmInline
 
 @Serializable
 @JvmInline
-value class GroupSize(val uint: UInt) : GroupToken
+value class GroupSize(val uint: UInt)

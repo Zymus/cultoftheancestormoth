@@ -32,9 +32,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordType
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordValueToken
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.SubGroups
 import kotlinx.io.Buffer
 import kotlinx.io.InternalIoApi
 import kotlinx.io.readByteArray
@@ -51,7 +48,8 @@ class RecordSerializerTests {
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
         val serializer = RecordSerializer()
         val record = Record(
-            RecordHeader(RecordType(TypeTag("TEST")), RecordSize(0), RecordProperties(0, 0, 0, 0, 0, 0)),
+            TypeTag("TEST"),
+            RecordHeader(RecordSize(0), RecordProperties(0, 0, 0, 0, 0, 0)),
             Fields(
                 listOf(
                     Field(FieldType(TypeTag("DATA")), FieldSize(4), FieldValue(PluginFormat.encodeToByteString(26)))
@@ -77,22 +75,8 @@ class RecordSerializerTests {
 
     @Test
     fun `format fields value polymorphically`() {
-        val record: RecordValueToken = TEST_FIELDS
-        val encoded = PluginFormat.encodeToSink(PolymorphicSerializer(RecordValueToken::class), record)
+        val record: Any = TEST_FIELDS
+        val encoded = PluginFormat.encodeToSink(PolymorphicSerializer(Any::class), record)
 //        val decoded: RecordValueToken = PluginFormat.decodeFromSource(PolymorphicSerializer(RecordValueToken::class), encoded.buffer)
-    }
-
-    @Test
-    fun `format groups value polymorphically`() {
-        val record: RecordValueToken = TEST_SUBGROUPS
-        val encoded = PluginFormat.encodeToSink(PolymorphicSerializer(RecordValueToken::class), record)
-        val decoded: RecordValueToken = PluginFormat.decodeFromSource(SubGroups.serializer(), encoded.buffer)
-    }
-
-    @Test
-    fun `format groups value`() {
-        val record = TEST_RECORD_WITH_SUBGROUPS
-        val encoded = PluginFormat.encodeToSink(Record.serializer(), record)
-        val decoded = PluginFormat.decodeFromSource(Record.serializer(), encoded.buffer)
     }
 }

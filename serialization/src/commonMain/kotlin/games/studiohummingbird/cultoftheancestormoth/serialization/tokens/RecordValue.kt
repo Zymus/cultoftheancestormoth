@@ -1,5 +1,5 @@
 /**
-Cult of the Ancestor Moth (RecordToken.kt)
+Cult of the Ancestor Moth (RecordValue.kt)
 Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.serialization.tokens
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 
-@Serializable
-sealed interface RecordToken : PluginToken
+sealed interface RecordValue
+
+val recordValueModule = SerializersModule {
+    polymorphic(RecordValue::class) {
+        subclass(Fields::class, Fields.serializer())
+        subclass(CompressedFields::class, CompressedFields.serializer())
+        subclass(LongField::class, LongField.serializer())
+//        polymorphicDefaultDeserializer(RecordValue::class) {
+//            CompressedFields.serializer()
+//        }
+    }
+}
+

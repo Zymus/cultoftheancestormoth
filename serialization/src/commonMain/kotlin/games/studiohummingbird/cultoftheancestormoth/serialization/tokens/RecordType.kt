@@ -6,4 +6,4 @@ import kotlin.jvm.JvmInline
 
 @Serializable
 @JvmInline
-value class RecordType(val typeTag: TypeTag) : RecordToken
+value class RecordType(val typeTag: TypeTag)

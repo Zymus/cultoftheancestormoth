@@ -6,4 +6,4 @@ import kotlin.jvm.JvmInline
 
 @Serializable
 @JvmInline
-value class FieldType(val typeTag: TypeTag) : FieldToken
+value class FieldType(val typeTag: TypeTag)

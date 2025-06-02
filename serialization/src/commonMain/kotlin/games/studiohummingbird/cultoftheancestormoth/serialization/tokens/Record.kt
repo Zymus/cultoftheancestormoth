@@ -18,25 +18,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth.serialization.tokens
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.RecordSerializer
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import kotlinx.io.bytestring.ByteString
 import kotlinx.serialization.Serializable
 
 @Serializable(with = RecordSerializer::class)
 data class Record(
+    val tag: TypeTag,
     val header: RecordHeader,
-    val value: RecordValueToken,
-) : GroupToken {
-    val fields: List<Field>
-        get() = if (value is Fields) {
-            value.fields
-        } else {
-            emptyList()
-        }
+    val value: RecordValue,
+) {
+    val fields: Fields
+        get() = value as? Fields ?: Fields(emptyList())
 
-    val compressedFields: ByteString
-        get() = if (value is CompressedFields) {
-            value.byteString
-        } else {
-            ByteString()
-        }
+    val compressedFields: CompressedFields
+        get() = value as? CompressedFields ?: CompressedFields(ByteString())
 }

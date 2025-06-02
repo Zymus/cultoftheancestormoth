@@ -6,5 +6,5 @@ import kotlin.jvm.JvmInline
 @JvmInline
 @Serializable
 value class Fields(
-    val fields: List<Field>
-) : RecordValueToken
+    val list: List<Field>
+) : RecordValue

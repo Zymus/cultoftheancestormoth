@@ -10,4 +10,4 @@ data class GroupProperties(
     val timestamp: Short,
     val versionControl: Short,
     val unknown: Int
-) : GroupToken
+)

@@ -1,8 +1,10 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization.tokens
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+@SerialName("RecordProperties")
 data class RecordProperties(
     val flags: Int,
     val recordId: Int,
@@ -10,7 +12,7 @@ data class RecordProperties(
     val versionControl: Short,
     val recordVersion: Short,
     val unknown: Short
-) : RecordToken {
+) {
     val isMaster: Boolean
         get() = flags and 1 == 1
 

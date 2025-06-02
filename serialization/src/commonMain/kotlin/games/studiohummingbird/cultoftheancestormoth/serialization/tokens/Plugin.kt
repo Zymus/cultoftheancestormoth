@@ -23,5 +23,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Plugin(
     val header: PluginHeader,
-    val groups: List<Group>
+    val groups: List<PluginToken>
 )

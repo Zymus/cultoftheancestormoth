@@ -27,18 +27,13 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldS
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Group
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordType
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Records
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.SubGroups
 import kotlinx.io.bytestring.ByteString
 
 const val TEST_VALUE_BYTE: Byte = 26
@@ -62,7 +57,6 @@ val TEST_FIELD_INT: Field = Field(
     TEST_FIELD_VALUE_INT
 )
 
-val TEST_RECORD_TYPE: RecordType = RecordType(TEST_TYPE_TAG)
 val TEST_RECORD_SIZE: RecordSize = RecordSize(34)
 val TEST_RECORD_PROPERTIES: RecordProperties = RecordProperties(
     TEST_VALUE_INT,
@@ -74,7 +68,6 @@ val TEST_RECORD_PROPERTIES: RecordProperties = RecordProperties(
 )
 
 val TEST_RECORD_HEADER: RecordHeader = RecordHeader(
-    TEST_RECORD_TYPE,
     TEST_RECORD_SIZE,
     TEST_RECORD_PROPERTIES
 )
@@ -84,6 +77,7 @@ val TEST_FIELDS = Fields(listOf(TEST_FIELD_INT))
 val TEST_COMPRESSED_FIELDS = CompressedFields(ByteString(TEST_VALUE_BYTE))
 
 val TEST_RECORD_WITH_FIELDS = Record(
+    TEST_TYPE_TAG,
     TEST_RECORD_HEADER,
     TEST_FIELDS
 )
@@ -99,26 +93,7 @@ val TEST_GROUP_PROPERTIES = GroupProperties(
 )
 
 val TEST_GROUP_HEADER = GroupHeader(
-    GroupTag,
     TEST_GROUP_SIZE,
     TEST_GROUP_PROPERTIES
 )
 
-val TEST_GROUP: Group = Group(
-    TEST_GROUP_HEADER,
-    Records(listOf(TEST_RECORD_WITH_FIELDS))
-)
-
-val TEST_RECORD_GROUP = Record(
-    TEST_RECORD_HEADER,
-    SubGroups(listOf(TEST_GROUP))
-)
-
-val TEST_SUBGROUPS = SubGroups(listOf(
-    TEST_GROUP
-))
-
-val TEST_RECORD_WITH_SUBGROUPS = Record(
-    TEST_RECORD_HEADER,
-    TEST_SUBGROUPS
-)

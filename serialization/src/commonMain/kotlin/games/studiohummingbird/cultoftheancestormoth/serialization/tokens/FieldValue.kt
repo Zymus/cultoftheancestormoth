@@ -7,4 +7,4 @@ import kotlin.jvm.JvmInline
 
 @Serializable
 @JvmInline
-value class FieldValue(val value: @Serializable(with = ByteStringSerializer::class) ByteString) : FieldToken
+value class FieldValue(val value: @Serializable(with = ByteStringSerializer::class) ByteString)

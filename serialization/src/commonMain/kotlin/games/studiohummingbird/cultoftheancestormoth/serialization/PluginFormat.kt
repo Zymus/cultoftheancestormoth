@@ -19,6 +19,7 @@ package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.recordValueModule
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
@@ -33,12 +34,13 @@ import kotlinx.serialization.modules.SerializersModule
 object PluginFormat : BinaryFormat, BufferFormat {
     override val serializersModule: SerializersModule = SerializersModule {
         include(polymorphicPrimitiveModule)
-        include(recordValueTokenModule)
+        include(recordValueModule)
+        include(polymorphicPluginToken)
     }
 
     override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
         val buffer = Buffer().apply { write(bytes) }
-        val decoder = BethesdaBufferDecoder(buffer, serializersModule)
+        val decoder = BethesdaBufferDecoder(buffer, serializersModule, deserializer.descriptor)
         val deserializedFromBytes = deserializer.deserialize(decoder)
         return deserializedFromBytes
 //            .also { println("${deserializer.descriptor} $it") }
@@ -56,7 +58,7 @@ object PluginFormat : BinaryFormat, BufferFormat {
     }
 
     override fun <T : Any> decodeFromSource(deserializer: DeserializationStrategy<T>, source: Source): T {
-        val decoder = BethesdaBufferDecoder(source, serializersModule)
+        val decoder = BethesdaBufferDecoder(source, serializersModule, deserializer.descriptor)
         val deserializedFromBytes = deserializer.deserialize(decoder)
         return deserializedFromBytes
 //            .also(::println)

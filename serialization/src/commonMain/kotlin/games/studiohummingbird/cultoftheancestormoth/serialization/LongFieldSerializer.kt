@@ -1,5 +1,5 @@
 /**
-Cult of the Ancestor Moth (FieldSerializer.kt)
+Cult of the Ancestor Moth (LongFieldSerializer.kt)
 Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringDecoder
-import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
@@ -31,45 +30,35 @@ import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeStructure
 
-const val SERIAL_NAME = "games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field"
-
-class FieldSerializer : KSerializer<Field> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor(SERIAL_NAME) {
-        element<FieldType>("fieldType")
+object LongFieldSerializer : KSerializer<LongField> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor(LongField.SERIAL_NAME) {
         element<FieldSize>("fieldSize")
-        element<FieldValue>("fieldValue")
+        element<Int>("actualSize")
+        element<FieldType>("fieldType")
+        element<FieldSize>("emptyFieldSize")
+        element<FieldValue>("value")
     }
 
     override fun serialize(
         encoder: Encoder,
-        value: Field
+        value: LongField
     ) {
-        encoder.encodeStructure(descriptor) {
-            encodeSerializableElement(descriptor, 0, FieldType.serializer(), value.fieldType)
-
-            val encodedFieldValue = PluginFormat.encodeToByteString(FieldValue.serializer(), value.fieldValue)
-            val fieldSize = FieldSize(encodedFieldValue.size)
-            encodeSerializableElement(descriptor, 1, FieldSize.serializer(), fieldSize)
-
-            // currently double encoding, consider using encodedFieldvalue somehow
-            encodeSerializableElement(descriptor, 2, FieldValue.serializer(), value.fieldValue)
-        }
+        TODO("Not yet implemented")
     }
 
-    override fun deserialize(decoder: Decoder): Field {
+    override fun deserialize(decoder: Decoder): LongField {
         require(decoder is ByteStringDecoder)
         return decoder.decodeStructure(descriptor) {
-            val fieldType = decodeSerializableElement(descriptor, 0, FieldType.serializer())
-            if (fieldType.typeTag.string == LongField.SERIAL_NAME) {
-                println("encountered ${LongField.SERIAL_NAME}")
-                return@decodeStructure decodeSerializableElement(descriptor, 1, LongFieldSerializer).longField
-            }
-            val fieldSize = decodeSerializableElement(descriptor, 1, FieldSize.serializer())
-            val byteString = decoder.decodeByteString(fieldSize.ushort.toInt())
+            val fieldSize = decodeSerializableElement(descriptor, 0, FieldSize.serializer())
+            val actualSize = decodeIntElement(descriptor, 1)
+            val fieldType = decodeSerializableElement(descriptor, 2, FieldType.serializer())
+            val emptyFieldSize = decodeSerializableElement(descriptor, 3, FieldSize.serializer())
 
-            Field(fieldType, fieldSize, FieldValue(byteString))
+            val valueByteString = decoder.decodeByteString(actualSize)
+            val value = FieldValue(valueByteString)
+
+            LongField(fieldSize, actualSize, Field(fieldType, emptyFieldSize, value))
         }
     }
 }

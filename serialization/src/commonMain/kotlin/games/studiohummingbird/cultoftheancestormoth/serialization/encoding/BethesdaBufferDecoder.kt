@@ -18,7 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth.serialization.encoding
 
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringDecoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.GroupTagSerializer
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.fixedLength
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isFixedLength
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
@@ -31,7 +32,8 @@ import kotlinx.io.Source
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.readByteString
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
@@ -45,48 +47,43 @@ import kotlinx.serialization.serializer
 @ExperimentalSerializationApi
 class BethesdaBufferDecoder(
     private val source: Source,
-    override val serializersModule: SerializersModule
+    override val serializersModule: SerializersModule,
+    private val serialDescriptor: SerialDescriptor,
+    private val tabs: Int = 0
 ) : AbstractDecoder(), FieldDecoder, TypeTagDecoder, ByteStringDecoder {
 
     private val primitiveBufferDecoder by lazy { LittleEndianSourceDecoder(source) }
     private val stringDecoder by lazy { source.decodeWindows1252() }
 
-    private var structureElements = 0
     private var structureElementIndex = 0
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        return when(descriptor.serialName) {
-            GroupTagSerializer.SERIAL_NAME -> {
-                val decoder = BethesdaBufferDecoder(source, serializersModule)
-                val groupTag: TypeTag = decoder.decodeSerializableValue(serializersModule.serializer())
-                if (groupTag.string != "GRUP") {
-                    throw SerializationException("expected GRUP: $groupTag")
-                }
-                decoder
-            }
-            else -> BethesdaBufferDecoder(source, serializersModule)// basically a subscope, same source, different elements and indexes
-        }.also {
-            it.structureElements = descriptor.elementsCount
-            it.structureElementIndex = 0
-        }
+        debug("${serialDescriptor.serialName} beginStructure ${descriptor.serialName} ${descriptor.elementsCount}")
+        return BethesdaBufferDecoder(source, serializersModule, descriptor, tabs + 1)
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
-        structureElements = 0
-        structureElementIndex = 0
+        debug("${serialDescriptor.serialName} endStructure ${descriptor.serialName} ${descriptor.elementsCount} ${descriptor.kind} $structureElementIndex ")
+        structureElementIndex++
     }
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        debug("${serialDescriptor.serialName} decodeElementIndex ${descriptor.kind} ")
         return when (descriptor.kind) {
             StructureKind.LIST -> if (!source.request(1)) { DECODE_DONE } else { structureElementIndex++ }
-            StructureKind.CLASS -> if (structureElementIndex == structureElements) { DECODE_DONE } else { structureElementIndex++ }
-            else -> CompositeDecoder.UNKNOWN_NAME
+            StructureKind.CLASS -> if (structureElementIndex >= descriptor.elementsCount) { DECODE_DONE } else { structureElementIndex++ }
+            PolymorphicKind.OPEN -> if (structureElementIndex >= descriptor.elementsCount || source.exhausted()) {
+                DECODE_DONE
+            } else {
+                structureElementIndex++
+            }
+            else -> structureElementIndex++
         }
     }
 
     override fun decodeInline(descriptor: SerialDescriptor): Decoder {
         return when {
-            descriptor.isFixedLength -> BethesdaBufferDecoder(Buffer().apply { source.readTo(this, descriptor.fixedLength.length.toLong()) }, serializersModule)
+            descriptor.isFixedLength -> BethesdaBufferDecoder(Buffer().apply { source.readTo(this, descriptor.fixedLength.length.toLong()) }, serializersModule, descriptor)
             descriptor == NullTerminatedString.serializer().descriptor -> nullTerminatedStringDecoder(source)
             else -> this
         }
@@ -104,7 +101,13 @@ class BethesdaBufferDecoder(
 
     override fun decodeDouble(): Double = primitiveBufferDecoder.decodeDouble()
 
-    override fun decodeString(): String = stringDecoder.decodeString()
+    override fun decodeString(): String =
+        if (structureElementIndex == 1 && serialDescriptor.kind == PolymorphicKind.OPEN) {
+            debug("${serialDescriptor.serialName} decodeString ${serialDescriptor.serialName} ${serialDescriptor.elementsCount} $structureElementIndex")
+            PluginFormat.decodeFromByteString(String.serializer(), decodeByteString(4))
+        } else {
+            stringDecoder.decodeString()
+        }
 
     override fun decodeField(): Field {
         TODO()
@@ -115,4 +118,14 @@ class BethesdaBufferDecoder(
     override fun decodeByteString(): ByteString = source.readByteString()
 
     override fun decodeByteString(byteCount: Int): ByteString = source.readByteString(byteCount)
+
+    private fun tabs(): String = (0 until tabs).joinToString("") { "\t" }
+
+    private fun debug(message: String) {
+        val debug = false
+        if (debug) {
+            print(tabs())
+            println(message)
+        }
+    }
 }

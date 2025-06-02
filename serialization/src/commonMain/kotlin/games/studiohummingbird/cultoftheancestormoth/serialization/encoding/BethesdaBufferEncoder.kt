@@ -1,9 +1,7 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization.encoding
 
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.GroupTagSerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.nullTerminatedStringEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encodeWindows1252
 import kotlinx.io.Buffer
@@ -16,7 +14,6 @@ import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.serializer
 
 @OptIn(ExperimentalSerializationApi::class)
 class BethesdaBufferEncoder(
@@ -39,10 +36,6 @@ class BethesdaBufferEncoder(
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         return when (descriptor.serialName) {
-            GroupTagSerializer.SERIAL_NAME -> {
-                encodeSerializableValue(serializersModule.serializer(), TypeTag("GRUP"))
-                this
-            }
             else -> this
         }
     }

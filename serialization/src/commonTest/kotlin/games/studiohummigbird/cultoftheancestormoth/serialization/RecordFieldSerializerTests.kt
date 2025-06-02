@@ -47,8 +47,8 @@ class RecordFieldSerializerTests {
             writeIntLe(intValue)
         }
         val source: Source = buffer
-        val decoder = BethesdaBufferDecoder(source, polymorphicPrimitiveModule)
         val serializer = Field.serializer()
+        val decoder = BethesdaBufferDecoder(source, polymorphicPrimitiveModule, serializer.descriptor)
 
         val deserialized = serializer.deserialize(decoder)
 

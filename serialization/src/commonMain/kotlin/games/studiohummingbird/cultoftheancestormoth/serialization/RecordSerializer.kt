@@ -21,17 +21,13 @@ import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteS
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringSerializer
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CompressedFields
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Group
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupValueToken
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.CellRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordValueToken
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Records
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.SubGroups
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordValue
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -44,14 +40,6 @@ import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
-val recordValueTokenModule = SerializersModule {
-    polymorphic(RecordValueToken::class) {
-        subclass(Fields::class, Fields.serializer())
-        subclass(CompressedFields::class, CompressedFields.serializer())
-        subclass(SubGroups::class, SubGroups.serializer())
-    }
-}
-
 val polymorphicPrimitiveModule = SerializersModule {
     polymorphic(Any::class) {
         subclass(Byte::class, Byte.serializer())
@@ -61,21 +49,11 @@ val polymorphicPrimitiveModule = SerializersModule {
         subclass(Float::class, Float.serializer())
         subclass(Double::class, Double.serializer())
     }
-
-
-}
-
-val groupValueTokenModule = SerializersModule {
-    polymorphic(GroupValueToken::class) {
-        subclass(Records::class, Records.serializer())
-        subclass(SubGroups::class, SubGroups.serializer())
-        subclass(Group::class, Group.serializer())
-        subclass(CellRecord::class, CellRecord.serializer())
-    }
 }
 
 class RecordSerializer() : KSerializer<Record> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(SERIAL_NAME) {
+        element<TypeTag>("tag")
         element<RecordHeader>("header")
         element("data", ByteStringSerializer.descriptor)
     }
@@ -83,17 +61,18 @@ class RecordSerializer() : KSerializer<Record> {
     override fun deserialize(decoder: Decoder): Record {
         require(decoder is ByteStringDecoder)
         return decoder.decodeStructure(descriptor) {
-            val header = decodeSerializableElement(descriptor, 0, RecordHeader.serializer())
+            val tag = decodeSerializableElement(descriptor, 0, TypeTag.serializer())
+            val header = decodeSerializableElement(descriptor, 1, RecordHeader.serializer())
             val recordFieldsBytes = decoder.decodeByteString(header.recordSize.int)
 
-            val recordValue: RecordValueToken =
+            val recordValue: RecordValue =
                 if (header.recordProperties.isDataCompressed) {
                     PluginFormat.decodeFromByteString(CompressedFields.serializer(), recordFieldsBytes)
                 } else {
                     PluginFormat.decodeFromByteString(Fields.serializer(), recordFieldsBytes)
                 }
 
-            Record(header, recordValue)
+            Record(tag, header, recordValue)
         }
     }
 
@@ -109,12 +88,19 @@ class RecordSerializer() : KSerializer<Record> {
             encodeSerializableElement(
                 descriptor,
                 0,
+                TypeTag.serializer(),
+                value.tag
+            )
+
+            encodeSerializableElement(
+                descriptor,
+                1,
                 RecordHeader.serializer(),
                 header)
 
             encodeSerializableElement(
                 descriptor,
-                1,
+                2,
                 ByteStringSerializer,
                 recordValueByteString
             )

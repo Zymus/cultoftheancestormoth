@@ -5,4 +5,4 @@ import kotlin.jvm.JvmInline
 
 @Serializable
 @JvmInline
-value class RecordSize(val int: Int) : RecordToken
+value class RecordSize(val int: Int)

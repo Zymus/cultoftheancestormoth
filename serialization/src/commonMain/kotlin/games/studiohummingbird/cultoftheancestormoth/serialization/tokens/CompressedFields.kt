@@ -9,4 +9,4 @@ import kotlin.jvm.JvmInline
 @Serializable
 value class CompressedFields(
     val byteString: @Serializable(with = ByteStringSerializer::class) ByteString
-) : RecordValueToken
+) : RecordValue

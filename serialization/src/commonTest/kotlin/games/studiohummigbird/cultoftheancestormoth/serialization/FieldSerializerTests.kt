@@ -140,7 +140,7 @@ class FieldSerializerTests {
 
         // buffer now has serialized field
 
-        val decoder = BethesdaBufferDecoder(buffer, polymorphicPrimitiveModule)
+        val decoder = BethesdaBufferDecoder(buffer, polymorphicPrimitiveModule, serializer.descriptor)
         val deserializedField = serializer.deserialize(decoder)
 
         assertEquals(stringPairField.fieldType, deserializedField.fieldType)
