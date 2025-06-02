@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummigbird.cultoftheancestormoth.serialization
 
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
@@ -374,6 +375,7 @@ class PluginFormatTests {
             "ARTO",
             "MATO",
             "MOVT",
+            "HAZD",// second empty HAZD group
             "SNDR",
             "DUAL",
             "SNCT",
@@ -383,7 +385,19 @@ class PluginFormatTests {
             "REVB"
         ).forEach { groupName ->
             val group = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded) as GRUP
-            println("verified ${debugString(group.header)} ${group.children.mapNotNull { it as? PluginRecord }.mapNotNull { it.fields as? Fields }.map { it.list.first() }.joinToString()}")
+            assertEquals(groupName, group.header.groupProperties.label.string)
+            println("verified ${debugString(group.header)} ${
+                group.children
+                    .mapNotNull { it as? PluginRecord }
+                    .mapNotNull { it.fields as? Fields }
+                    .flatMap { it.list }
+                    .filter { it.fieldType.typeTag.string == "EDID" }.joinToString {
+                        PluginFormat.decodeFromByteString(
+                            NullTerminatedString.serializer(),
+                            it.fieldValue.value
+                        ).string
+                    }
+            }")
         }
 //            .single { it.header.groupProperties.label.string == "AMMO" }
 //            .also { println(it.header.groupSize) }
