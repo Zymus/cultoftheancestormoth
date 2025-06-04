@@ -30,13 +30,13 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GRUP
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginToken
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Record
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordHeader
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordProperties
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordType
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.VOLI
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -44,6 +44,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -243,278 +244,313 @@ class PluginFormatTests {
 
     @Test
     fun `read TES4 from Skyrim esm`() {
-        val encoded = SystemFileSystem
-            // /media/zymus/5516E98402BDA1A5/SteamLibrary/steamapps/common/Skyrim Special Edition/Data
-            .source(
-                Path(
-                    "/",
-                    "media",
-                    "zymus",
-                    "5516E98402BDA1A5",
-                    "SteamLibrary",
-                    "steamapps",
-                    "common",
-                    "Skyrim Special Edition",
-                    "Data",
-                    "Skyrim.esm"
+        val groups = mapOf<String, List<String>>(
+//            "Skyrim" to emptyList(),
+//            listOf(
+//                "GMST",
+//                "KYWD",
+//                "LCRT",
+//                "AACT",
+//                "TXST",
+//                "GLOB",
+//                "CLAS",
+//                "FACT",
+//                "HDPT",// buffer becoming exhausted here now?
+//                "HAIR",
+//                "EYES",
+//                "RACE",
+//                "SOUN",
+//                "ASPC",
+//                "MGEF",
+//                "SCPT",
+//                "LTEX",
+//                "ENCH",
+//                "SPEL",
+//                "SCRL",
+//                "ACTI",
+//                "TACT",
+//                "ARMO",
+//                "BOOK",
+//                "CONT",
+//                "DOOR",
+//                "INGR",
+//                "LIGH",
+//                "MISC",
+//                "APPA",
+//                "STAT",
+//                "SCOL",
+//                "MSTT",
+//                "PWAT",
+//                "GRAS",
+//                "TREE",
+//                "CLDC",
+//                "FLOR",
+//                "FURN",
+//                "WEAP",
+//                "AMMO",
+//                "NPC_",// NPC_ is the first group with compressed records
+//                "LVLN",
+//                "KEYM",
+//                "ALCH",
+//                "IDLM",
+//                "COBJ",
+//                "PROJ",
+//                "HAZD",
+//                "SLGM",
+//                "LVLI",
+//                "WTHR",
+//                "CLMT",
+//                "SPGD",
+//                "RFCT",
+//                "REGN",
+//                "NAVI",
+//                "CELL",// has sub groups in the groups, under first record.
+//                "WRLD",
+//                "DIAL",
+//                "QUST",
+//                "IDLE",
+//                "PACK",
+//                "CSTY",
+//                "LSCR",
+//                "LVSP",
+//                "ANIO",
+//                "WATR",
+//                "EFSH",
+//                "EXPL",
+//                "DEBR",
+//                "IMGS",
+//                "IMAD",
+//                "FLST",
+//                "PERK",
+//                "BPTD",
+//                "ADDN",
+//                "AVIF",
+//                "CAMS",
+//                "CPTH",
+//                "VTYP",
+//                "MATT",
+//                "IPCT",
+//                "IPDS",
+//                "ARMA",
+//                "ECZN",
+//                "LCTN",
+//                "MESG",
+//                "RGDL",
+//                "DOBJ",
+//                "LGTM",
+//                "MUSC",
+//                "FSTP",
+//                "FSTS",
+//                "SMBN",
+//                "SMQN",
+//                "SMEN",
+//                "DLBR",
+//                "MUST",
+//                "DLVW",
+//                "WOOP",
+//                "SHOU",
+//                "EQUP",
+//                "RELA",
+//                "SCEN",
+//                "ASTP",
+//                "OTFT",
+//                "ARTO",
+//                "MATO",
+//                "MOVT",
+//                "HAZD",// second empty HAZD group
+//                "SNDR",
+//                "DUAL",
+//                "SNCT",
+//                "SOPM",
+//                "COLL",
+//                "CLFM",
+//                "REVB"
+//            ),
+            "Update" to emptyList(),
+//                    listOf(
+//                        "GMST",
+//                        "KYWD",
+//                        "TXST",
+//                        "GLOB",
+//                        "FACT",
+//                        "RACE",
+//                        "MGEF",
+//                        "LTEX",
+//                        "ENCH",
+//                        "SPEL",
+//                        "SCRL",
+//                        "ACTI",
+//                        "ARMO",
+//                        "BOOK",
+//                        "CONT",
+//                        "DOOR",
+//                        "INGR",
+//                        "MISC",
+//                        "STAT",
+//                        "GRAS",
+//                        "FLOR",
+//                        "FURN",
+//                        "WEAP",
+//                        "AMMO",
+//                        "NPC_",// NPC_ is the first group with compressed records
+//                        "LVLN",
+//                        "ALCH",
+//                        "COBJ",
+//                        "PROJ",
+//                        "LVLI",
+//                        "WTHR",
+//                        "REGN",
+//                        "NAVI",
+//                        "CELL",// has sub groups in the groups, under first record.
+//                        "WRLD",// behaves weird in Update.esm, had inner empty NAVM records
+//                        "DIAL",
+//                        "QUST",
+//                        "IDLE",
+//                        "PACK",
+//                        "LSCR",
+//                        "WATR",
+//                        "EXPL",
+//                        "IMGS",
+//                        "IMAD",
+//                        "FLST",
+//                        "PERK",
+//                        "BPTD",
+//                        "AVIF",
+//                        "CAMS",
+//                        "CPTH",
+//                        "IPCT",
+//                        "IPDS",
+//                        "ARMA",
+//                        "ECZN",
+//                        "LCTN",
+//                        "MESG",
+//                        "DOBJ",
+//                        "MUSC",
+//                        "FSTP",
+//                        "FSTS",
+//                        "DLBR",
+//                        "MUST",
+//                        "DLVW",
+//                        "SCEN",
+//                        "MATO",
+//                        "SNDR",
+//                        "VOLI"
+//                    ),
+//            "HearthFires" to emptyList<String>()
+        ).map { file ->
+            val encoded = SystemFileSystem
+                .source(
+                    Path(
+                        "/",
+                        "media",
+                        "zymus",
+                        "5516E98402BDA1A5",
+                        "SteamLibrary",
+                        "steamapps",
+                        "common",
+                        "Skyrim Special Edition",
+                        "Data",
+                        "${file.key}.esm"
+                    )
                 )
-            )
-            .buffered()
+                .buffered()
 
-        val decoded: PluginToken = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded)
-            .also { println("verified TES4") }
+            val tes4 = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded)
 
-        val groups = listOf(
-            "GMST",
-            "KYWD",
-            "LCRT",
-            "AACT",
-            "TXST",
-            "GLOB",
-            "CLAS",
-            "FACT",
-            "HDPT",// buffer becoming exhausted here now?
-            "HAIR",
-            "EYES",
-            "RACE",
-            "SOUN",
-            "ASPC",
-            "MGEF",
-            "SCPT",
-            "LTEX",
-            "ENCH",
-            "SPEL",
-            "SCRL",
-            "ACTI",
-            "TACT",
-            "ARMO",
-            "BOOK",
-            "CONT",
-            "DOOR",
-            "INGR",
-            "LIGH",
-            "MISC",
-            "APPA",
-            "STAT",
-            "SCOL",
-            "MSTT",
-            "PWAT",
-            "GRAS",
-            "TREE",
-            "CLDC",
-            "FLOR",
-            "FURN",
-            "WEAP",
-            "AMMO",
-            "NPC_",// NPC_ is the first group with compressed records
-            "LVLN",
-            "KEYM",
-            "ALCH",
-            "IDLM",
-            "COBJ",
-            "PROJ",
-            "HAZD",
-            "SLGM",
-            "LVLI",
-            "WTHR",
-            "CLMT",
-            "SPGD",
-            "RFCT",
-            "REGN",
-            "NAVI",
-            "CELL",// has sub groups in the groups, under first record.
-            "WRLD",
-            "DIAL",
-            "QUST",
-            "IDLE",
-            "PACK",
-            "CSTY",
-            "LSCR",
-            "LVSP",
-            "ANIO",
-            "WATR",
-            "EFSH",
-            "EXPL",
-            "DEBR",
-            "IMGS",
-            "IMAD",
-            "FLST",
-            "PERK",
-            "BPTD",
-            "ADDN",
-            "AVIF",
-            "CAMS",
-            "CPTH",
-            "VTYP",
-            "MATT",
-            "IPCT",
-            "IPDS",
-            "ARMA",
-            "ECZN",
-            "LCTN",
-            "MESG",
-            "RGDL",
-            "DOBJ",
-            "LGTM",
-            "MUSC",
-            "FSTP",
-            "FSTS",
-            "SMBN",
-            "SMQN",
-            "SMEN",
-            "DLBR",
-            "MUST",
-            "DLVW",
-            "WOOP",
-            "SHOU",
-            "EQUP",
-            "RELA",
-            "SCEN",
-            "ASTP",
-            "OTFT",
-            "ARTO",
-            "MATO",
-            "MOVT",
-            "HAZD",// second empty HAZD group
-            "SNDR",
-            "DUAL",
-            "SNCT",
-            "SOPM",
-            "COLL",
-            "CLFM",
-            "REVB"
-        ).forEach { groupName ->
-            val group = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded) as GRUP
-            assertEquals(groupName, group.header.groupProperties.label.string)
-            println("verified ${debugString(group.header)} ${
-                group.children
-                    .mapNotNull { it as? PluginRecord }
-                    .mapNotNull { it.fields as? Fields }
-                    .flatMap { it.list }
-                    .filter { it.fieldType.typeTag.string == "EDID" }.joinToString {
-                        PluginFormat.decodeFromByteString(
-                            NullTerminatedString.serializer(),
-                            it.fieldValue.value
-                        ).string
-                    }
-            }")
-        }
-//            .single { it.header.groupProperties.label.string == "AMMO" }
-//            .also { println(it.header.groupSize) }
-//            .also { println(it.records.list.size) }
-//            .run {
-//                records.list
-//                    .apply { assertEquals(35, size) }
-//                    .flatMap { it.fields }
-//                    .filter { it.fieldType.typeTag.string == "EDID" }
-//                    .map { PluginFormat.decodeFromByteString<NullTerminatedString>(it.fieldValue.value) }
-////                    .forEach(::println)
-//            }
-
-        encoded
-            .run {
-                buildList<KSerializer<out Any>> {
-                    // WLRD stuff
-
-//                    add(GroupHeader.serializer())// GRUP (WRLD) 0
-//                    add(Record.serializer())// Main WRLD
+            PluginFormat.decodeFromSource(ListSerializer(PolymorphicSerializer(PluginToken::class)), encoded)
+                .filterIsInstance<GRUP>()
+                .filter { it.header.groupProperties.label.string == "VOLI" }
+                .flatMap { it.children }
+                .filterIsInstance<VOLI>()
+                .map { it.fields as Fields }
+                .flatMap { it.list }
+                .map { listOf(it.fieldType.typeTag.string, it.fieldSize.ushort, PluginFormat.decodeFromByteString(String.serializer(), it.fieldValue.value)).joinToString() }
+                .run(::println)
+//                .forEach { token -> println(debugString(token)) }
 //
-//                    add(GroupHeader.serializer())// GRUP 0 CELL
-//                    cellBlock()
-//                    add(CellRecord.serializer())
-////                    // the above chunk reads until GRUP 4
-////                    // the below chunk reads until the next WRLD record
-//////                    add(Record.serializer())// Main CELL
-//////                    add(Group.serializer())// GRUP 6
-//                    repeat(168) {
-//                        // group 4s
-//                        add(Group.serializer())
-//                    }
-
-                    // second WRLD
-//                    add(Record.serializer())// Main WRLD
-//                    add(GroupHeader.serializer())// GRUP (CELL) 1
-//                    add(CellRecord.serializer())
-//                    repeat(6) {
-//                        // group 4s
-//                        add(Group.serializer())
-//                    }
-
-//                     repeatable WRLD
-//                    listOf(
-//                        168,
-//                        6,
-//                        3
-//                    ).forEach { size ->
-//                        world(size)
-//                    }
-
-//                    add(GroupHeader.serializer())// 4
-//                    add(GroupHeader.serializer())// 5 (EMPTY)
-//                    add(GroupHeader.serializer())// 5 (NOT-EMPTY)
-//                    add(CellRecord.serializer())// CELL
-//
-//                    add(CellBlock.serializer())// 4
-//                    world(1)
-
-                    // is it because 4 must be the parent of 5?
-
-                    // from aboe
-                    // 4
-                    // 4, but the, there is another 4, not part of the group
-                    //
-
-
-                    // / Top level (0)
-                    //   / Records
-                    //   / WRLD Children (1)
-                    //     / CELL Record
-                    //       / Cell Children (6)
-                    //         / Cell Persistent Children (8)
-                    //           / Record
-                    //         / Cell Temporary Children (9)
-                    //           / Record
-                    //   / (Interior | Exterior)
-                    //     / Cell Block (2 | 4)
-                    //       / Cell Sub Block (3 | 5)
-                    //         / Record
-                    //         / Cell Children (6)
-                    //           / Cell Persistent Children (8)
-                    //             / Record
-                    //           / Cell Temporary Children (9)
-                    //             / Record
-//                    listOf(
-//                        listOf(16),
-//                        listOf(16),
-//                        listOf(16),
-//                        listOf(4),
-//                        listOf(1),
-//                        listOf(4),
-//                        listOf(16),
-//                        listOf(16),
-//                        listOf(16),
-//                        listOf(16),
-//                        listOf(16),
-//                        listOf(10),
-//                    ).forEach { subgroup ->
-//                        add(GroupHeader.serializer())// GRUP 4 => GRUP 5
-//                        subgroup.forEach { records ->
-//                            repeat(records) {
-//                                add(Group.serializer())// GRUP 5 => CELL
-//                            }
+//            file.value.forEach { groupName ->
+//                val group = PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), encoded) as GRUP
+//                assertEquals(groupName, group.header.groupProperties.label.string)
+//                println(
+//                    "verified ${debugString(group.header)} ${
+//                    group.children
+//                        .mapNotNull { it as? PluginRecord }
+//                        .mapNotNull { it.fields as? Fields }
+//                        .flatMap { it.list }
+//                        .filter { it.fieldType.typeTag.string == "EDID" }
+//                        .joinToString {
+//                            PluginFormat.decodeFromByteString(
+//                                NullTerminatedString.serializer(),
+//                                it.fieldValue.value
+//                            ).string
 //                        }
-//                    }
-
-//                    add(GroupHeader.serializer())
-//                    add(Record.serializer())
-
-//                    repeatPeek(5)
-                }.mapIndexed { index, it ->
-                    print("$index ")
-                    val deserialized = PluginFormat.decodeFromSource(it, this)
-                    println(debugString(deserialized))
-                }
-            }
+//                }")
+//            }
+//
+//            buildList {
+//                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())
+////                add(PolymorphicSerializer(PluginToken::class))// WRLD
+//////                add(PolymorphicSerializer(PluginToken::class))// GRUP
+////                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 4
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 4
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 4
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 4
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 4
+////                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())// GRUP 4
+////                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())// GRUP 5
+////                repeat(36) {
+////                    add(PolymorphicSerializer(PluginToken::class))// CELL
+////                    add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                }
+////                repeat(1) {
+////                    add(PolymorphicSerializer(PluginToken::class))// GRUP 5
+////                }
+////                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())// GRUP 5
+////                repeat(30) {
+////                    add(PolymorphicSerializer(PluginToken::class))// CELL
+////                    add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                }
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())// GRUP 6
+////                add(TypeTag.serializer())
+////                add(GroupHeader.serializer())// GRUP 9
+////                add(PolymorphicSerializer(PluginToken::class))// LAND
+////                add(PolymorphicSerializer(PluginToken::class))// NAVM
+////                add(PolymorphicSerializer(PluginToken::class))// NAVM
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 8
+////                add(TypeTag.serializer())// GRUP 8
+////                add(GroupHeader.serializer())
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                add(PolymorphicSerializer(PluginToken::class))// CELL
+////                add(PolymorphicSerializer(PluginToken::class))// GRUP 6
+////                repeatPeek(1)
+//            }.forEachIndexed { index, serializer ->
+//                PluginFormat.decodeFromSource(serializer, encoded)
+//                    .also { println("$index, ${debugString(it)}") }
+//            }
+        }
     }
 
     private fun debugString(it: Any): String =
@@ -572,6 +608,11 @@ class PluginFormatTests {
                 } else {
                     it.string.hashCode().toHexString()
                 }
+            ).joinToString(" ")
+
+            is GRUP -> listOf(
+                "GRUP",
+                debugString(it.header)
             ).joinToString(" ")
 
             else -> "unknown ${it::class}"

@@ -117,7 +117,18 @@ class BethesdaBufferDecoder(
 
     override fun decodeByteString(): ByteString = source.readByteString()
 
-    override fun decodeByteString(byteCount: Int): ByteString = source.readByteString(byteCount)
+    override fun decodeByteString(byteCount: Int): ByteString =
+        if (byteCount == 0) {
+            ByteString()
+        } else {
+            try {
+//                println(byteCount)
+                source.readByteString(byteCount)
+            }
+            catch (e: Exception) {
+                TODO()
+            }
+        }
 
     private fun tabs(): String = (0 until tabs).joinToString("") { "\t" }
 

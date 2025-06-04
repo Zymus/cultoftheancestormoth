@@ -139,6 +139,7 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.TACTSerialize
 import games.studiohummingbird.cultoftheancestormoth.serialization.TES4Serializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.TREESerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.TXSTSerializer
+import games.studiohummingbird.cultoftheancestormoth.serialization.VOLISerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.VTYPSerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.WATRSerializer
 import games.studiohummingbird.cultoftheancestormoth.serialization.WEAPSerializer
@@ -1785,5 +1786,17 @@ data class INFO(
 ) : PluginRecord {
     companion object {
         const val SERIAL_NAME = "INFO"
+    }
+}
+
+@KeepGeneratedSerializer
+@Serializable(VOLISerializer::class)
+@SerialName(VOLI.SERIAL_NAME)
+data class VOLI(
+    override val header: RecordHeader,
+    override val fields: RecordValue,
+) : PluginRecord {
+    companion object {
+        const val SERIAL_NAME = "VOLI"
     }
 }

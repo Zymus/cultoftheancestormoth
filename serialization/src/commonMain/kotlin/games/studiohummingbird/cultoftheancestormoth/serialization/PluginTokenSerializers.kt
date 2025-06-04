@@ -141,6 +141,7 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.TACT
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.TES4
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.TREE
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.TXST
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.VOLI
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.VTYP
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.WATR
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.WEAP
@@ -286,6 +287,7 @@ val polymorphicPluginToken = SerializersModule {
         subclass(PHZD::class, PHZD.serializer())
         subclass(LAND::class, LAND.serializer())
         subclass(INFO::class, INFO.serializer())
+        subclass(VOLI::class, VOLI.serializer())
     }
 }
 
@@ -443,3 +445,4 @@ object PGRESerializer : PluginRecordSerializer<PGRE>(PGRE.generatedSerializer())
 object PHZDSerializer : PluginRecordSerializer<PHZD>(PHZD.generatedSerializer())
 object LANDSerializer : PluginRecordSerializer<LAND>(LAND.generatedSerializer())
 object INFOSerializer : PluginRecordSerializer<INFO>(INFO.generatedSerializer())
+object VOLISerializer : PluginRecordSerializer<VOLI>(VOLI.generatedSerializer())

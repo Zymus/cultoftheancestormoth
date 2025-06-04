@@ -33,20 +33,23 @@ sealed class PluginRecordSerializer<TRecord : PluginRecord>(
             val headerByteString = decoder.decodeByteString(20)
             val header = PluginFormat.decodeFromByteString(RecordHeader.serializer(), headerByteString)
             buffer.write(headerByteString)
-            // stop here
+            if (header.recordSize.int ==  0) {
+                println("0 record size")
+            }
+
             debug("reading ${header.recordSize} ${header.recordProperties.isDataCompressed} bytes for record")
             val recordValueByteString = decoder.decodeByteString(header.recordSize.int)
             buffer.write(recordValueByteString)
 
             debug("deserializing record from buffer")
-            val decoder = if (header.recordProperties.isDataCompressed) {
+            val recordDecoder = if (header.recordProperties.isDataCompressed || header.recordSize.int == 0) {
                 CompressedFieldsDecoder(serializersModule, buffer)
             } else if (PluginFormat.decodeFromByteString(TypeTag.serializer(), recordValueByteString).string == LongField.SERIAL_NAME) {
                 RecordFieldsDecoder(serializersModule, buffer)
             } else {
                 RecordFieldsDecoder(serializersModule, buffer)
             }
-            val deserializedRecord = recordSerializer.deserialize(decoder)
+            val deserializedRecord = recordSerializer.deserialize(recordDecoder)
 
             // the issue here is how to decode te fields correctly
             // each record could be compressed
@@ -67,8 +70,8 @@ sealed class PluginRecordSerializer<TRecord : PluginRecord>(
         TODO("Not yet implemented")
     }
 
-    private fun debug(message: String) {
-        val debug = false
+    private fun debug(message: String, override: Boolean = false) {
+        val debug = false || override
         if (debug) {
             println(message)
         }
