@@ -23,8 +23,10 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             implementation(libs.clikt)
+            implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.serialization.core)
             implementation(project(":serialization"))
+            implementation(project(":bytestring-serializer"))
         }
     }
 }

@@ -18,20 +18,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth
 
 import com.github.ajalt.clikt.core.CliktCommand
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Plugin
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
-import kotlinx.serialization.decodeFromByteArray
-import java.nio.file.Files
-import java.nio.file.Paths
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginRecord
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginToken
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.StreamingToken
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.readByteString
+import kotlinx.serialization.PolymorphicSerializer
 import kotlin.time.measureTime
 
 class Load : CliktCommand() {
-    override fun run() {
-        val path = Paths.get("example.esp")
 
-        measureTime {
-            val bytes = Files.readAllBytes(path)
-            val plugin = PluginFormat.decodeFromByteArray<Plugin>(bytes).also(::println)
-        }.also(::println)
+    val groupName: String? by option()
+        .default("COBJ")
+
+    override fun run() {
+        val bufferedMasterFile = SystemFileSystem
+            .source(
+                Path(
+                    "/",
+                    "media",
+                    "zymus",
+                    "5516E98402BDA1A5",
+                    "SteamLibrary",
+                    "steamapps",
+                    "common",
+                    "Skyrim Special Edition",
+                    "Data",
+//                    "Update.esm"     //  153724
+                    "Skyrim.esm"     // 4387995
+//                    "HearthFires.esm"//  127665
+                )
+            )
+            .buffered()
+
+        val transferByteString = bufferedMasterFile.readByteString()
+        println(transferByteString.size)
+
+        var sequence: Sequence<StreamingToken>
+
+        repeat(1) {
+            measureTime {
+                sequence = PluginFormat.decodeMarkerSequenceFromByteString(transferByteString)
+                sequence
+                    .filter { marker -> marker.tag.string == groupName }
+                    .map {
+                        PluginFormat.decodeFromByteString(
+                            PolymorphicSerializer(PluginToken::class),
+                            transferByteString,
+                            it.skip.toInt(),
+                            it.size.toInt())
+                    }
+                    .map {
+                        when (it) {
+                            is PluginRecord -> it.fields as Fields
+                            else -> TODO()
+                        }
+                    }
+                    .flatMap { it.list }
+                    .filter { it.fieldType.typeTag.string == "EDID" }
+                    .map { PluginFormat.decodeFromByteString(NullTerminatedString.serializer(), it.fieldValue.value).string }
+                    .forEach(::println)
+            }
+                .also { println("toList time $it") }
+        }
     }
 }

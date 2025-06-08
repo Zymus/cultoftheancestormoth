@@ -48,6 +48,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -243,6 +244,7 @@ class PluginFormatTests {
     }
 
     @Test
+    @Ignore
     fun `read TES4 from Skyrim esm`() {
         val groups = mapOf<String, List<String>>(
 //            "Skyrim" to emptyList(),
@@ -464,7 +466,13 @@ class PluginFormatTests {
                 .filterIsInstance<VOLI>()
                 .map { it.fields as Fields }
                 .flatMap { it.list }
-                .map { listOf(it.fieldType.typeTag.string, it.fieldSize.ushort, PluginFormat.decodeFromByteString(String.serializer(), it.fieldValue.value)).joinToString() }
+                .map {
+                    listOf(
+                        it.fieldType.typeTag.string,
+                        it.fieldSize.ushort,
+                        PluginFormat.decodeFromByteString(String.serializer(), it.fieldValue.value)
+                    ).joinToString()
+                }
                 .run(::println)
 //                .forEach { token -> println(debugString(token)) }
 //
@@ -553,6 +561,105 @@ class PluginFormatTests {
         }
     }
 
+    @Test
+    fun `faster tokens`() {
+        val bufferedMasterFile = SystemFileSystem
+            .source(
+                Path(
+                    "/",
+                    "media",
+                    "zymus",
+                    "5516E98402BDA1A5",
+                    "SteamLibrary",
+                    "steamapps",
+                    "common",
+                    "Skyrim Special Edition",
+                    "Data",
+                    "Skyrim.esm"
+                )
+            )
+            .buffered()
+
+        // first read TES4
+        val peekSource = bufferedMasterFile.peek()
+        val typeTag = PluginFormat.decodeFromSource(TypeTag.serializer(), peekSource)
+        val recordSize = PluginFormat.decodeFromSource(RecordSize.serializer(), peekSource)
+        val totalSize = recordSize.int.toUInt().toLong() + 24
+        println("${debugString(typeTag)} ${debugString(recordSize)} $totalSize")
+        bufferedMasterFile.skip(totalSize)
+
+        // GRUPs
+        repeat(118) {
+            val grupPeek = bufferedMasterFile.peek()
+            val grupTag = PluginFormat.decodeFromSource(TypeTag.serializer(), grupPeek)
+            val grupSize = PluginFormat.decodeFromSource(GroupSize.serializer(), grupPeek)
+            println("$it ${debugString(grupTag)} ${debugString(grupSize)}")
+            bufferedMasterFile.skip(grupSize.uint.toLong())
+        }
+    }
+
+    @Test
+    fun `faster tokens with sequence`() {
+        val bufferedMasterFile = SystemFileSystem
+            .source(
+                Path(
+                    "/",
+                    "media",
+                    "zymus",
+                    "5516E98402BDA1A5",
+                    "SteamLibrary",
+                    "steamapps",
+                    "common",
+                    "Skyrim Special Edition",
+                    "Data",
+//                    "Update.esm"     //  153724
+                    "Skyrim.esm"     // 4387995
+//                    "HearthFires.esm"//  127665
+                )
+            )
+            .buffered()
+
+        val sequence = PluginFormat.decodeMarkerSequenceFromSource(bufferedMasterFile.peek())
+//        sequence.filter { it.tag.string == "EDID" }.forEach(::println)
+//        sequence.last().run(::println)
+//        val npcEDIDs = sequence.dropWhile { it.tag.string != NPC.SERIAL_NAME }.takeWhile { it.tag.string != GRUP.SERIAL_NAME }.forEach(::println)
+        sequence
+//            .toList()
+            .count()
+            .run(::println)
+//            .filter(StreamingToken::isDataCompressed)
+//            .filter { it.tag.string == "RELA" }
+//            .first()
+//            .let { firstMarker ->
+//                println("reading from $this")
+//                val intermediateSource = bufferedMasterFile.peek()
+//                intermediateSource.skip(firstMarker.skip)
+//
+//                while (!intermediateSource.exhausted()) {
+//                    val pluginToken =
+//                        PluginFormat.decodeFromSource(PolymorphicSerializer(PluginToken::class), intermediateSource)
+//
+//                    when (pluginToken) {
+//                        is RELA ->
+//                            let { pluginToken.fields as Fields }
+//                                .list
+//                                .single { it.fieldType.typeTag.string == "EDID" }
+//                                .run {
+//                                    PluginFormat.decodeFromByteString(
+//                                        NullTerminatedString.serializer(),
+//                                        fieldValue.value
+//                                    )
+//                                }
+//                                .also(::println)
+//
+//                        else -> TODO()
+//                    }
+//                }
+//            }
+
+
+    }
+
     private fun debugString(it: Any): String =
         when (it) {
             is GroupSize -> listOf(
@@ -603,7 +710,7 @@ class PluginFormatTests {
 
             is TypeTag -> listOf(
                 "TypeTag",
-                if (it.string.all { it.isLetter() || it == '_' }) {
+                if (it.string.all { it.isLetterOrDigit() || it == '_' }) {
                     it.string
                 } else {
                     it.string.hashCode().toHexString()

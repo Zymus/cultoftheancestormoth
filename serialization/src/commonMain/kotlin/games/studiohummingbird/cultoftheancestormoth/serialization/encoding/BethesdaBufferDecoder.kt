@@ -121,13 +121,7 @@ class BethesdaBufferDecoder(
         if (byteCount == 0) {
             ByteString()
         } else {
-            try {
-//                println(byteCount)
-                source.readByteString(byteCount)
-            }
-            catch (e: Exception) {
-                TODO()
-            }
+            source.readByteString(byteCount)
         }
 
     private fun tabs(): String = (0 until tabs).joinToString("") { "\t" }

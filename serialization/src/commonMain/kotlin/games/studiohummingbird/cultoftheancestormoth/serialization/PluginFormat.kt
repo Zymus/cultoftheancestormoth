@@ -1,33 +1,42 @@
 /**
-    Cult of the Ancestor Moth (ObjectBoundsSerializer.kt)
-    Copyright (C) 2024  Zymus (moore.zyle@gmail.com)
+Cult of the Ancestor Moth (ObjectBoundsSerializer.kt)
+Copyright (C) 2024  Zymus (moore.zyle@gmail.com)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GRUP
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.StreamingToken
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.recordValueModule
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
+import kotlinx.io.bytestring.ByteString
 import kotlinx.io.readByteArray
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class, ExperimentalStdlibApi::class)
@@ -72,6 +81,346 @@ object PluginFormat : BinaryFormat, BufferFormat {
             sink
         }
         return serializedToBytes
+    }
+
+    private val recordTypes = setOf(
+        "TES4",
+        "GMST",
+        "KYWD",
+        "LCRT",
+        "AACT",
+        "TXST",
+        "GLOB",
+        "CLAS",
+        "FACT",
+        "HDPT",// buffer becoming exhausted here now?
+        "HAIR",
+        "EYES",
+        "RACE",
+        "SOUN",
+        "ASPC",
+        "MGEF",
+        "SCPT",
+        "LTEX",
+        "ENCH",
+        "SPEL",
+        "SCRL",
+        "ACTI",
+        "TACT",
+        "ARMO",
+        "BOOK",
+        "CONT",
+        "DOOR",
+        "INGR",
+        "LIGH",
+        "MISC",
+        "APPA",
+        "STAT",
+        "SCOL",
+        "MSTT",
+        "PWAT",
+        "GRAS",
+        "TREE",
+        "CLDC",
+        "FLOR",
+        "FURN",
+        "WEAP",
+        "AMMO",
+        "NPC_",// NPC_ is the first group with compressed records
+        "LVLN",
+        "KEYM",
+        "ALCH",
+        "IDLM",
+        "COBJ",
+        "PROJ",
+        "HAZD",
+        "SLGM",
+        "LVLI",
+        "WTHR",
+        "CLMT",
+        "SPGD",
+        "RFCT",
+        "REGN",
+        "NAVI",
+        "CELL",// has sub groups in the groups, under first record.
+        "REFR",
+        "WRLD",
+        "DIAL",
+        "QUST",
+        "IDLE",
+        "PACK",
+        "CSTY",
+        "LSCR",
+        "LVSP",
+        "ANIO",
+        "WATR",
+        "EFSH",
+        "EXPL",
+        "DEBR",
+        "IMGS",
+        "IMAD",
+        "FLST",
+        "PERK",
+        "BPTD",
+        "ADDN",
+        "AVIF",
+        "CAMS",
+        "CPTH",
+        "VTYP",
+        "MATT",
+        "IPCT",
+        "IPDS",
+        "ARMA",
+        "ECZN",
+        "LCTN",
+        "MESG",
+        "RGDL",
+        "DOBJ",
+        "LGTM",
+        "MUSC",
+        "FSTP",
+        "FSTS",
+        "SMBN",
+        "SMQN",
+        "SMEN",
+        "DLBR",
+        "MUST",
+        "DLVW",
+        "WOOP",
+        "SHOU",
+        "EQUP",
+        "RELA",
+        "SCEN",
+        "ASTP",
+        "OTFT",
+        "ARTO",
+        "MATO",
+        "MOVT",
+        "HAZD",// second empty HAZD group
+        "SNDR",
+        "DUAL",
+        "SNCT",
+        "SOPM",
+        "COLL",
+        "CLFM",
+        "REVB",
+        "ACHR",
+        "NAVM",
+        "PGRE",
+        "PHZD",
+        "LAND",
+        "INFO",
+        "VOLI"
+    )
+
+    fun decodeMarkerSequenceFromByteString(byteString: ByteString): Sequence<StreamingToken>  {
+        var sourcePosition = 0L
+        return sequence {
+            while (sourcePosition < byteString.size) {
+                val startPosition = sourcePosition
+                val type = decodeFromByteString(TypeTag.serializer(), byteString, sourcePosition.toInt(), 4)
+                sourcePosition += 4
+
+                val isGroup = type.string == GRUP.SERIAL_NAME
+                val isRecord = type.string in recordTypes
+                val isField = !isGroup && !isRecord
+
+                var elementSize: Long
+
+                if (isGroup) {
+                    elementSize = decodeFromByteString(GroupSize.serializer(), byteString, sourcePosition.toInt(), 4).uint.toLong()
+                    sourcePosition += 4
+
+                    sourcePosition += 16
+
+                    yield(
+                        StreamingToken(
+                            type,
+                            startPosition,
+                            elementSize,
+                            StreamingToken.Type.GROUP,
+                            false
+                        )
+                    )
+                } else if (isRecord) {
+                    val recordSize = decodeFromByteString(RecordSize.serializer(), byteString, sourcePosition.toInt(), 4).int.toUInt().toLong()
+                    elementSize = recordSize + 24
+                    sourcePosition += 4
+
+                    val isDataCompressed = decodeFromByteString(Int.serializer(), byteString, sourcePosition.toInt(), 4) and 0x40000 == 0x40000
+                    sourcePosition += 4
+
+                    sourcePosition += 12
+
+                    if (isDataCompressed) {// if compressed, position to next record, not fields
+                        sourcePosition += recordSize
+                    }
+
+                    // position now ready to read field
+                    yield(StreamingToken(
+                        type,
+                        startPosition,
+                        elementSize,
+                        StreamingToken.Type.RECORD,
+                        isDataCompressed
+                    ))
+                } else if (isField) {
+                    val fieldSize = decodeFromByteString(FieldSize.serializer(), byteString, sourcePosition.toInt(), 2).ushort.toLong()
+                    elementSize = fieldSize + 6
+                    sourcePosition += 2
+
+                    yield(StreamingToken(
+                        type,
+                        startPosition,
+                        elementSize,
+                        StreamingToken.Type.FIELD,
+                        false
+                    ))
+
+                    if (type.string == "XXXX") {
+                        val followingFieldSize = decodeFromByteString(UInt.serializer(), byteString, sourcePosition.toInt(), 4).toLong()
+                        sourcePosition += 4
+
+                        val followingFieldPosition = sourcePosition
+                        val followingFieldType = decodeFromByteString(TypeTag.serializer(), byteString, sourcePosition.toInt(), 4)
+                        sourcePosition += 4
+
+                        elementSize = followingFieldSize + 6
+
+                        // skip next field size, since it's 0/from xxxxFieldvalue
+                        sourcePosition += 2
+
+                        // skip value
+                        sourcePosition += followingFieldSize
+
+                        yield(
+                            StreamingToken(
+                                followingFieldType,
+                                skip = followingFieldPosition,
+                                size = elementSize,
+                                StreamingToken.Type.FIELD,
+                                false
+                            )
+                        )
+                        // source position should be ready to read the next thing
+                    } else {
+                        sourcePosition += fieldSize
+                    }
+                }
+            }
+        }
+    }
+
+    fun decodeMarkerSequenceFromSource(source: Source): Sequence<StreamingToken> {
+        // [TES4][54][54 bytes]
+        // [24 Bytes][54 bytes]
+        // 0: TES4, skip = 0, size = 78 (54 + 24)
+        // [HEDR][2 bytes][12 bytes]
+        // [4   + 2 bytes][12 bytes]
+        // 1: HEDR, skip = 24, size = 18
+        // [CNAM][2 bytes][x bytes]
+        // 2: CNAM, skip = 24 + 18
+        var sourcePosition = 0L
+        return sequence {
+            while (!source.exhausted()) {
+                val startPosition = sourcePosition
+                val type = decodeFromSource(TypeTag.serializer(), source)
+                sourcePosition += 4
+
+                val isGroup = type.string == GRUP.SERIAL_NAME
+                val isRecord = type.string in recordTypes
+                val isField = !isGroup && !isRecord
+
+                var elementSize: Long
+
+                if (isGroup) {
+                    elementSize = decodeFromSource(GroupSize.serializer(), source).uint.toLong()
+                    sourcePosition += 4
+
+                    source.skip(16)// skip the rest of the GRUP header
+                    sourcePosition += 16
+
+                    yield(
+                        StreamingToken(
+                            type,
+                            startPosition,
+                            elementSize,
+                            StreamingToken.Type.GROUP,
+                            false
+                        )
+                    )
+                } else if (isRecord) {
+                    val recordSize = decodeFromSource(RecordSize.serializer(), source).int.toUInt().toLong()
+                    elementSize = recordSize + 24
+                    sourcePosition += 4
+
+                    val isDataCompressed = decodeFromSource(Int.serializer(), source) and 0x40000 == 0x40000
+                    sourcePosition += 4
+
+                    source.skip(12)// remaining bytes of record header, after <tag> <size> <flags>
+                    sourcePosition += 12
+
+                    if (isDataCompressed) {// if compressed, position to next record, not fields
+                        source.skip(recordSize)
+                        sourcePosition += recordSize
+                    }
+
+                    // position now ready to read field
+                    yield(StreamingToken(
+                        type,
+                        startPosition,
+                        elementSize,
+                        StreamingToken.Type.RECORD,
+                        isDataCompressed
+                    ))
+                } else if (isField) {
+                    val fieldSize = decodeFromSource(FieldSize.serializer(), source).ushort.toLong()
+                    elementSize = fieldSize + 6
+                    sourcePosition += 2
+
+                    yield(StreamingToken(
+                        type,
+                        startPosition,
+                        elementSize,
+                        StreamingToken.Type.FIELD,
+                        false
+                    ))
+
+                    if (type.string == "XXXX") {
+                        val followingFieldSize = decodeFromSource(UInt.serializer(), source).toLong()
+                        sourcePosition += 4
+
+                        val followingFieldPosition = sourcePosition
+                        val followingFieldType = decodeFromSource(TypeTag.serializer(), source)
+                        sourcePosition += 4
+
+                        elementSize = followingFieldSize + 6
+
+                        // skip next field size, since it's 0/from xxxxFieldvalue
+                        source.skip(2)
+                        sourcePosition += 2
+
+                        // skip value
+                        source.skip(followingFieldSize)
+                        sourcePosition += followingFieldSize
+
+                        yield(
+                            StreamingToken(
+                                followingFieldType,
+                                skip = followingFieldPosition,
+                                size = elementSize,
+                                StreamingToken.Type.FIELD,
+                                false
+                            )
+                        )
+                        // source position should be ready to read the next thing
+                    } else {
+                        source.skip(fieldSize)
+                        sourcePosition += fieldSize
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -13,7 +13,7 @@ class Cotam : CliktCommand() {
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main(args: Array<String>) =
-    mainCotam(args)
+    mainLoad(args)
 
 fun mainCotam(args: Array<String>) =
     Cotam().subcommands(
@@ -25,3 +25,4 @@ fun mainCotam(args: Array<String>) =
 
 fun mainLoad(args: Array<String>) =
     Load().main(args)
+

@@ -23,8 +23,11 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 
-fun <T : Any> BinaryFormat.decodeFromByteString(deserializationStrategy: DeserializationStrategy<T>, byteString: ByteString): T =
-    decodeFromByteArray(deserializationStrategy, byteString.toByteArray())
+fun <T : Any> BinaryFormat.decodeFromByteString(deserializationStrategy: DeserializationStrategy<T>, byteString: ByteString, start: Int = 0, limit: Int = 0): T =
+    run {
+        val endIndex = if (limit == 0) { byteString.size } else { start + limit }
+        decodeFromByteArray(deserializationStrategy, byteString.toByteArray(start, endIndex))
+    }
 
 inline fun <reified T : Any> BinaryFormat.decodeFromByteString(byteString: ByteString): T =
     decodeFromByteString(serializer(), byteString)
