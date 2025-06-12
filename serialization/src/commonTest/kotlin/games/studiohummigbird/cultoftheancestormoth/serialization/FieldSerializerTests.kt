@@ -46,7 +46,7 @@ class FieldSerializerTests {
         val data = ByteArray(5)
         val field = Field(
             FieldType(type),
-            FieldSize(0),
+            0.toUShort(),
             FieldValue(PluginFormat.encodeToByteString(data)))
 
         val buffer = Buffer()
@@ -67,7 +67,7 @@ class FieldSerializerTests {
         val serializer = Field.serializer()
         val intField = Field(
             FieldType(TypeTag(fieldName)),
-            FieldSize(0),
+            0.toUShort(),
             FieldValue(PluginFormat.encodeToByteString(26)))
         val buffer = Buffer()
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
@@ -83,7 +83,7 @@ class FieldSerializerTests {
         val serializer = Field.serializer()
         val doubleField = Field(
             FieldType(TypeTag(fieldName)),
-            FieldSize(0),
+            0.toUShort(),
             FieldValue(PluginFormat.encodeToByteString(26.0)))
         val buffer = Buffer()
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
@@ -99,7 +99,7 @@ class FieldSerializerTests {
         val serializer = Field.serializer()
         val stringField = Field(
             FieldType(TypeTag(fieldName)),
-            FieldSize(0),
+            0.toUShort(),
             FieldValue(PluginFormat.encodeToByteString("Zymus")))
         val buffer = Buffer()
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
@@ -115,7 +115,7 @@ class FieldSerializerTests {
         val serializer = Field.serializer()
         val stringField = Field(
             FieldType(TypeTag(fieldName)),
-            FieldSize(0),
+            0.toUShort(),
             FieldValue(PluginFormat.encodeToByteString(NullTerminatedString("Zymus"))))
         val buffer = Buffer()
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)
@@ -131,7 +131,7 @@ class FieldSerializerTests {
         val serializer = Field.serializer()
         val stringPairField = Field(
             FieldType(TypeTag(fieldName)),
-            FieldSize(4),
+            4.toUShort(),
             FieldValue(PluginFormat.encodeToByteString(26)))
         val buffer = Buffer()
         val encoder = BethesdaBufferEncoder(buffer, polymorphicPrimitiveModule)

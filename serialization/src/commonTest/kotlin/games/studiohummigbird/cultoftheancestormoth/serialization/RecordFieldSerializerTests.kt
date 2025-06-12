@@ -53,7 +53,7 @@ class RecordFieldSerializerTests {
         val deserialized = serializer.deserialize(decoder)
 
         assertEquals(typeTag, deserialized.fieldType.typeTag)
-        assertEquals(fieldSize, deserialized.fieldSize.ushort)
+        assertEquals(fieldSize, deserialized.fieldSize)
         assertEquals(intValue, PluginFormat.decodeFromByteString(deserialized.fieldValue.value))
     }
 }

@@ -26,6 +26,7 @@ import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
+import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
@@ -35,7 +36,7 @@ class ByteStringStreamingDecoder(
     override val serializersModule: SerializersModule,
     private val byteString: ByteString,
     private val startIndex: Int = 0,
-    private val endIndex: Int = byteString.size
+    private val endIndex: Int = byteString.size,
 ) : AbstractDecoder(), ByteStringDecoder {
 
     private var offset: Int = 0
@@ -47,8 +48,18 @@ class ByteStringStreamingDecoder(
     private val remaining: Int
         get() = endIndex - absoluteOffset
 
+    private var serialDescriptorStack: ArrayDeque<SerialDescriptor> = ArrayDeque(10)
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        serialDescriptorStack.addFirst(descriptor)
+        return ByteStringStreamingDecoder(serializersModule, byteString, absoluteOffset).apply {
+            serialDescriptorStack.addFirst(descriptor)
+        }
+    }
+
     override fun endStructure(descriptor: SerialDescriptor) {
         structureElementIndex++
+        serialDescriptorStack.removeFirst()
     }
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
@@ -84,7 +95,7 @@ class ByteStringStreamingDecoder(
                     serializersModule,
                     byteString,
                     absoluteOffset,
-                    absoluteOffset + fixedLength
+                    absoluteOffset + fixedLength,
                 )
                 offset += fixedLength
                 decoder
@@ -107,46 +118,32 @@ class ByteStringStreamingDecoder(
     }
 
     override fun decodeByte(): Byte =
-        byteString[startIndex + offset++]
+        decodeMaskedByte().toByte()
 
-    override fun decodeShort(): Short {
-        require(2)
-        val low = decodeByte().toInt()
-        val high = decodeByte().toInt() shl 8
-        val result = (high or low).toShort()
-        return result
-    }
+    override fun decodeShort(): Short =
+        decodeMaskedShort().toShort()
 
-    override fun decodeInt(): Int {
-        require(4)
-        val low = decodeShort().toInt()
-        val high = decodeShort().toInt() shl 16
-        val result = (high or low)
-        return result
-    }
+    override fun decodeInt(): Int =
+        decodeMaskedInt().toInt()
 
-    override fun decodeLong(): Long {
-        require(8)
-        val low = decodeInt().toLong()
-        val high = decodeInt().toLong() shl 32
-        val result = (high or low)
-        return result
-    }
+    override fun decodeLong(): Long =
+        decodeMaskedLong().toLong()
 
-    override fun decodeFloat(): Float {
-        require(4)
-        return Float.fromBits(decodeInt())
-    }
+    override fun decodeFloat(): Float =
+        Float.fromBits(decodeInt())
 
-    override fun decodeDouble(): Double {
-        require(8)
-        return Double.fromBits(decodeLong())
-    }
+    override fun decodeDouble(): Double =
+        Double.fromBits(decodeLong())
 
     override fun decodeString(): String {
-        val builder = StringBuilder(remaining)
-        repeat(remaining) {
-            builder.append(decodeByte())
+        val structureDescriptor = serialDescriptorStack.firstOrNull()
+        val stringLength: Int =
+            if (structureDescriptor?.kind == PolymorphicKind.OPEN) { 4 }
+            else { remaining }
+
+        val builder = StringBuilder(stringLength)
+        repeat(stringLength) {
+            builder.append(decodeByte().toInt().toChar())
         }
         return builder.toString()
     }
@@ -167,8 +164,42 @@ class ByteStringStreamingDecoder(
     }
 
     private fun request(byteCount: Int): Boolean =
-        byteCount < remaining
+        byteCount <= remaining
 
     private fun require(byteCount: Int): Unit =
         require(request(byteCount)) { "EOF: required $byteCount, remaining $remaining" }
+
+    private fun decodeMaskedByte(): Int =
+        byteString[startIndex + offset++].toInt() and BYTE_MASK
+
+    private fun decodeMaskedShort(): Int {
+        require(2)
+        val low = decodeMaskedByte()
+        val high = decodeMaskedByte() shl 8
+        val result = (high or low) and SHORT_MASK
+        return result
+    }
+
+    private fun decodeMaskedInt(): Long {
+        require(4)
+        val low = decodeMaskedShort()
+        val high = decodeMaskedShort() shl 16
+        val result = (high or low).toLong() and INT_MASK
+        return result
+    }
+
+    private fun decodeMaskedLong(): ULong {
+        require(8)
+        val low = decodeMaskedInt()
+        val high = decodeMaskedInt() shl 32
+        val result = (high or low).toULong() and LONG_MASK
+        return result
+    }
+
+    companion object {
+        private const val BYTE_MASK = 0xFF
+        private const val SHORT_MASK = 0xFF_FF
+        private const val INT_MASK = 0xFF_FF_FF_FF
+        private const val LONG_MASK = 0xFF_FF_FF_FF_FF_FF_FF_FFu
+    }
 }

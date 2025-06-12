@@ -47,7 +47,7 @@ val TEST_NULL_TERMINATED_STRING: NullTerminatedString = NullTerminatedString(TES
 
 val TEST_TYPE_TAG: TypeTag = TypeTag(TEST_STRING)
 val TEST_FIELD_TYPE: FieldType = FieldType(TEST_TYPE_TAG)
-val TEST_FIELD_SIZE: FieldSize = FieldSize(4.toUShort())
+val TEST_FIELD_SIZE = 4.toUShort()
 val TEST_FIELD_VALUE_INT: FieldValue = FieldValue(PluginFormat.encodeToByteString(TEST_VALUE_INT))
 
 val TEST_FIELD_INT: Field = Field(

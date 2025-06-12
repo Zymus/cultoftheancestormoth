@@ -51,7 +51,7 @@ class RecordSerializerTests {
             RecordHeader(RecordSize(0), RecordProperties(0, 0, 0, 0, 0, 0)),
             Fields(
                 listOf(
-                    Field(FieldType(TypeTag("DATA")), FieldSize(4), FieldValue(PluginFormat.encodeToByteString(26)))
+                    Field(FieldType(TypeTag("DATA")), 4.toUShort(), FieldValue(PluginFormat.encodeToByteString(26)))
                 )
             )
         )

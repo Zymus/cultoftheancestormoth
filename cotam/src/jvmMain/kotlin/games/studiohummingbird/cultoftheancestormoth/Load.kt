@@ -69,6 +69,7 @@ class Load : CliktCommand() {
                 sequence = PluginFormat.decodeMarkerSequenceFromByteString(transferByteString)
                 sequence
                     .toList()
+//                    .forEach(::println)
                     .filter { marker -> marker.tag.string == groupName }
                     .map {
                         PluginFormat.decodeFromByteString(

@@ -51,7 +51,6 @@ object PluginFormat : BinaryFormat, BufferFormat {
         val decoder = ByteStringStreamingDecoder(serializersModule, ByteString(bytes))
         val deserializedFromBytes = deserializer.deserialize(decoder)
         return deserializedFromBytes
-//            .also { println("${deserializer.descriptor} $it") }
     }
 
     override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray {
@@ -213,14 +212,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
     )
 
     fun decodeMarkerSequenceFromByteString(byteString: ByteString): Sequence<StreamingToken> {
-        val decoder = ByteStringStreamingDecoder(serializersModule, byteString)
         var sourcePosition = 0L
         return sequence {
             while (sourcePosition < byteString.size) {
                 val startPosition = sourcePosition
-                println(startPosition)
-                val type = decoder.decodeSerializableValue(TypeTag.serializer())
-                println("typeLength ${type.string.length}")
+                val type = decodeFromByteString(TypeTag.serializer(), byteString, sourcePosition.toInt(), 4)
 
                 sourcePosition += 4
 
@@ -253,12 +249,15 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     )
                 } else if (isRecord) {
                     val recordSize = decodeFromByteString(
-                        RecordSize.serializer(),
+                        Int.serializer(),
                         byteString,
                         sourcePosition.toInt(),
                         4
-                    ).int.toUInt().toLong()
+                    ).toUInt().toLong()
 
+                    if (recordSize > 4004967224) {
+                        TODO("wrong size $recordSize")
+                    }
                     elementSize = recordSize + 24
                     sourcePosition += 4
 

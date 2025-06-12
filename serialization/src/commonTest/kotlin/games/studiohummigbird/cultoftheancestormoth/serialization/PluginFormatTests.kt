@@ -149,7 +149,7 @@ class PluginFormatTests {
     @Test
     fun `format field size`() {
         val encoded = PluginFormat.encodeToByteArray(TEST_FIELD_SIZE)
-        val decoded: FieldSize = PluginFormat.decodeFromByteArray(encoded)
+        val decoded: UShort = PluginFormat.decodeFromByteArray(encoded)
 
         assertEquals(2, encoded.size)
         assertEquals(TEST_FIELD_SIZE, decoded)
@@ -171,7 +171,7 @@ class PluginFormatTests {
 
         assertEquals(10, encoded.size)
         assertEquals(TEST_FIELD_TYPE, decoded.fieldType)
-        assertEquals(4, decoded.fieldSize.ushort.toInt())
+        assertEquals(4, decoded.fieldSize.toInt())
         assertEquals(TEST_FIELD_VALUE_INT, decoded.fieldValue)
     }
 
@@ -468,7 +468,7 @@ class PluginFormatTests {
                 .map {
                     listOf(
                         it.fieldType.typeTag.string,
-                        it.fieldSize.ushort,
+                        it.fieldSize,
                         PluginFormat.decodeFromByteString(String.serializer(), it.fieldValue.value)
                     ).joinToString()
                 }
