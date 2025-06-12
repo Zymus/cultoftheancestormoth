@@ -32,7 +32,7 @@ import kotlin.time.measureTime
  */
 @ExperimentalStdlibApi
 @ExperimentalSerializationApi
-fun pluginFileReader(block: (Sequence<StreamingToken>) -> Unit): FileReader =
+fun pluginFileReader(block: (Pair<ByteString, Sequence<StreamingToken>>) -> Unit): FileReader =
     FileReader().apply {
         onload = EventHandler { e ->
             val arrayBuffer: ArrayBuffer
@@ -72,6 +72,6 @@ fun pluginFileReader(block: (Sequence<StreamingToken>) -> Unit): FileReader =
             measureTime { decodedPlugin = PluginFormat.decodeMarkerSequenceFromByteString(byteString) }
                 .also { println("$it decodedPlugin") }
 
-            block(decodedPlugin)
+            block(byteString to decodedPlugin)
         }
     }

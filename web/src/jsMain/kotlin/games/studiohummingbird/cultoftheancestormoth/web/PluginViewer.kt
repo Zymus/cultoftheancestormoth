@@ -17,8 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.web
 
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginRecord
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginToken
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.StreamingToken
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.PolymorphicSerializer
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.form
@@ -37,31 +44,44 @@ val PluginViewer = FC<Props> {
             id = "plugin-upload"
             type = file
             name = "plugin-upload"
-            onChange = {
-                console.log("length", it.target.files?.length)
-                console.log("item0", it.target.files?.item(0))
+            onChange = { event ->
+                console.log("length", event.target.files?.length)
+                console.log("item0", event.target.files?.item(0))
 
-                val file = it.target.files?.item(0)
+                val file = event.target.files?.item(0)
                 if (file != null) {
-                    val reader = pluginFileReader { sequence ->
+                    val reader = pluginFileReader { (bytestring, sequence) ->
                         measureTime {
-                            val list = ArrayList<StreamingToken>(5_000_000)
-                            val chunked: Sequence<List<StreamingToken>>
+                            sequence
+                                .toList()
+//                    .forEach(::println)
+                                .filter { marker -> marker.tag.string == "COBJ" }
+                                .map { marker ->
+                                    PluginFormat.decodeFromByteString(
+                                        PolymorphicSerializer(PluginToken::class),
+                                        bytestring,
+                                        marker.skip.toInt(),
+                                        marker.size.toInt()
+                                    )
+                                }
+                                .map { token ->
+                                    when (token) {
+                                        is PluginRecord -> token.fields as Fields
+                                        else -> TODO()
+                                    }
+                                }
+                                .flatMap { it.list }
+                                .filter { it.fieldType.typeTag.string == "EDID" }
+                                .map {
+                                    PluginFormat.decodeFromByteString(
+                                        NullTerminatedString.serializer(),
+                                        it.fieldValue.value
+                                    ).string
+                                }
+                                .forEach(::println)
 
-                            measureTime {
-                                chunked = sequence.chunked(1_000)
-                            }
-                                .also { chunkedDuration -> println("chunked $chunkedDuration") }
-
-                            measureTime {
-                                chunked.forEach(list::addAll)
-                            }
-                                .also { chunkedDuration -> println("addAll $chunkedDuration") }
-
-                            list.count().run(::println)
-                        }
-                            .also(::println)
 //                        setPlugin(sequence)
+                        }.also(::println)
                     }.apply {
                         onprogress = EventHandler { e ->
                             console.log("reader onprogress", e.lengthComputable, e.loaded, e.total)
