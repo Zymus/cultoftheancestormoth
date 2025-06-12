@@ -22,7 +22,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields

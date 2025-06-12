@@ -1,6 +1,5 @@
 package games.studiohummingbird.cultoftheancestormoth.web
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.experimentalPlugin
 import kotlinx.serialization.ExperimentalSerializationApi
 import react.FC
 import react.Props
@@ -25,10 +24,6 @@ fun main() {
 @ExperimentalSerializationApi
 @OptIn(ExperimentalEncodingApi::class, ExperimentalStdlibApi::class)
 val App = FC<Props> {
-    val plugin = experimentalPlugin()
-//    val pluginData = PluginFormat.encodeToByteArray(plugin)
-//    val pluginDataBase64 = Base64.encode(pluginData)
-//    console.log("base64 encoding of the example plugin", pluginDataBase64)
     article {
         h1 {
             +"This is an example Skyrim plugin, created by Zymus, generated using Kotlin Multiplatform."

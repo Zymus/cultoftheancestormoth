@@ -68,6 +68,7 @@ class Load : CliktCommand() {
             measureTime {
                 sequence = PluginFormat.decodeMarkerSequenceFromByteString(transferByteString)
                 sequence
+                    .toList()
                     .filter { marker -> marker.tag.string == groupName }
                     .map {
                         PluginFormat.decodeFromByteString(

@@ -21,7 +21,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import kotlinx.io.bytestring.ByteString
@@ -265,7 +264,7 @@ val FieldViewer = FC<Props> {
 
                 val field = Field(
                     FieldType(TypeTag(state.fieldName)),
-                    FieldSize(0),
+                    0.toUShort(),
                     FieldValue(ByteString(fieldData))
                 )
 

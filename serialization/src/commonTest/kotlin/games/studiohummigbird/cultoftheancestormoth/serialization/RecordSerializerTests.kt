@@ -24,7 +24,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.Typ
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields

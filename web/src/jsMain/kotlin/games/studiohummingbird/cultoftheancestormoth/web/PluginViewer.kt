@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.web
 
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Plugin
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.StreamingToken
 import kotlinx.serialization.ExperimentalSerializationApi
 import react.FC
 import react.Props
@@ -26,12 +26,13 @@ import react.dom.html.ReactHTML.input
 import react.useState
 import web.events.EventHandler
 import web.html.InputType.Companion.file
+import kotlin.time.measureTime
 
 @ExperimentalSerializationApi
 @ExperimentalStdlibApi
 val PluginViewer = FC<Props> {
-    val (plugin, setPlugin) = useState<Plugin>()
-    form  {
+    val (plugin, setPlugin) = useState<Collection<StreamingToken>>(emptyList())
+    form {
         input {
             id = "plugin-upload"
             type = file
@@ -42,8 +43,25 @@ val PluginViewer = FC<Props> {
 
                 val file = it.target.files?.item(0)
                 if (file != null) {
-                    val reader = pluginFileReader { plugin ->
-                        setPlugin(plugin)
+                    val reader = pluginFileReader { sequence ->
+                        measureTime {
+                            val list = ArrayList<StreamingToken>(5_000_000)
+                            val chunked: Sequence<List<StreamingToken>>
+
+                            measureTime {
+                                chunked = sequence.chunked(1_000)
+                            }
+                                .also { chunkedDuration -> println("chunked $chunkedDuration") }
+
+                            measureTime {
+                                chunked.forEach(list::addAll)
+                            }
+                                .also { chunkedDuration -> println("addAll $chunkedDuration") }
+
+                            list.count().run(::println)
+                        }
+                            .also(::println)
+//                        setPlugin(sequence)
                     }.apply {
                         onprogress = EventHandler { e ->
                             console.log("reader onprogress", e.lengthComputable, e.loaded, e.total)

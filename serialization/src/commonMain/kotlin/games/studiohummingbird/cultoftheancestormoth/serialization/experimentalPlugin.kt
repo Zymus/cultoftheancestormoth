@@ -7,7 +7,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.P
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.recordtypes.TES4
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
@@ -42,12 +41,12 @@ fun experimentalPlugin(): Plugin {
                     listOf(
                         Field(
                             FieldType(TypeTag("EDID")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(String.serializer(), "FirstBoolean"))
                         ),
                         Field(
                             FieldType(TypeTag("DATA")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(Boolean.serializer(), true))
                         ),
                     )
@@ -68,56 +67,56 @@ fun experimentalPlugin(): Plugin {
                     listOf(
                         Field(
                             FieldType(TypeTag("HEDR")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(TES4.Header(1.7f, 0, 0)))
                         ),
                         Field(
                             FieldType(TypeTag("CNAM")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString("Zymus"))
                         ),
                         Field(
                             FieldType(TypeTag("SNAM")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString("TES4 Token Example"))
                         ),
                         Field(
                             FieldType(TypeTag("MAST")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString("Skyrim.esm"))
                         ),
                         Field(
                             FieldType(TypeTag("DATA")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(0L))
                         ),
                         Field(
                             FieldType(TypeTag("MAST")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString("Update.esm"))
                         ),
                         Field(
                             FieldType(TypeTag("DATA")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(0L))
                         ),
                         Field(
                             FieldType(TypeTag("MAST")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString("Hearthfires.esm"))
                         ),
                         Field(
                             FieldType(TypeTag("DATA")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(0L))
                         ),
                         Field(
                             FieldType(TypeTag("ONAM")),
-                            FieldSize(0),
+                            0.toUShort(),
                             FieldValue(PluginFormat.encodeToByteString(listOf(0L)))
                         ),
-                        Field(FieldType(TypeTag("INTV")), FieldSize(0), FieldValue(PluginFormat.encodeToByteString(0))),
-                        Field(FieldType(TypeTag("INCC")), FieldSize(0), FieldValue(PluginFormat.encodeToByteString(0))),
+                        Field(FieldType(TypeTag("INTV")), 0.toUShort(), FieldValue(PluginFormat.encodeToByteString(0))),
+                        Field(FieldType(TypeTag("INCC")), 0.toUShort(), FieldValue(PluginFormat.encodeToByteString(0))),
                     )
                 )
             )

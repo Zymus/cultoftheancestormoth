@@ -23,7 +23,6 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.F
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import kotlinx.serialization.Serializable
@@ -70,7 +69,7 @@ data class TES4(
         companion object {
             fun Field(version: Float, recordCount: Int, nextAvailableObjectId: Int) = Field(
                 FieldType(TypeTag("HEDR")),
-                FieldSize(0),
+                0.toUShort(),
                 FieldValue(PluginFormat.encodeToByteString(Header(version, recordCount, nextAvailableObjectId)))
             )
         }
@@ -89,7 +88,7 @@ data class TES4(
 
             fun Field(value: String): Field = Field(
                 FieldType(TypeTag("CNAM")),
-                FieldSize(0),
+                0.toUShort(),
                 FieldValue(PluginFormat.encodeToByteString(Author(value)))
             )
         }
@@ -108,7 +107,7 @@ data class TES4(
 
             fun Field(value: String): Field = Field(
                 FieldType(TypeTag("SNAM")),
-                FieldSize(0),
+                0.toUShort(),
                 FieldValue(PluginFormat.encodeToByteString(Description(NullTerminatedString(value))))
             )
         }
@@ -122,7 +121,7 @@ data class TES4(
         @FieldAnnotation("DATA")
         val data: Field = Field(
             FieldType(TypeTag("DATA")),
-            FieldSize(0),
+            0.toUShort(),
             FieldValue(PluginFormat.encodeToByteString(Data.DEFAULT)))
     ) {
         @JvmInline
@@ -145,11 +144,11 @@ data class TES4(
             operator fun invoke(name: String, data: Long = Data.DEFAULT.long)  = MasterFile(
                 Field(
                     FieldType(TypeTag("MAST")),
-                    FieldSize(0),
+                    0.toUShort(),
                     FieldValue(PluginFormat.encodeToByteString(Name(name)))),
                 Field(
                     FieldType(TypeTag("MAST")),
-                    FieldSize(0),
+                    0.toUShort(),
                     FieldValue(PluginFormat.encodeToByteString(Data(data)))))
         }
     }
@@ -160,7 +159,7 @@ data class TES4(
         companion object {
             fun Field(value: Int) = Field(
                 FieldType(TypeTag("INTV")),
-                FieldSize(0),
+                0.toUShort(),
                 FieldValue(PluginFormat.encodeToByteString(TagifiableValues(value)))
             )
         }

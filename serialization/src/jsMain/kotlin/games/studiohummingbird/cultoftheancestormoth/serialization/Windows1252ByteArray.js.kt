@@ -8,5 +8,5 @@ actual fun ByteArray.decodeWindows1252String(): String =
     textDecoder.decode(toUint8Array().buffer) as String
 
 actual fun String.toWindows1252ByteArray(): ByteArray {
-    TODO()
+    return encodeToByteArray(throwOnInvalidSequence = true)
 }

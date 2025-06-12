@@ -19,7 +19,6 @@ package games.studiohummigbird.cultoftheancestormoth.serialization.tokens
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import kotlinx.io.Buffer
 import kotlinx.io.readShortLe
 import kotlin.test.Test

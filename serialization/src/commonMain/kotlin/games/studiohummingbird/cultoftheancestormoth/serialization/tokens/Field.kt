@@ -8,6 +8,6 @@ import kotlinx.serialization.Serializable
 @SerialName("Field")
 data class Field(
     val fieldType: FieldType,
-    val fieldSize: FieldSize,
+    val fieldSize: UShort,
     val fieldValue: FieldValue
 )

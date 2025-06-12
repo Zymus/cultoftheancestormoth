@@ -18,15 +18,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package games.studiohummingbird.cultoftheancestormoth.serialization.datatypes
 
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.FixedLength
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 
 @JvmInline
 @Serializable
+@SerialName("TypeTag")
 @FixedLength(TypeTag.LENGTH)
 value class TypeTag(val string: String) {
     init {
-        require(string.length == LENGTH)
+        require(string.length == LENGTH) { "length ${string.length}" }
     }
 
     companion object {

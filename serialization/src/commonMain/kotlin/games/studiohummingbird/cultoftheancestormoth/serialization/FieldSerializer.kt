@@ -20,11 +20,11 @@ package games.studiohummingbird.cultoftheancestormoth.serialization
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringDecoder
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.encodeToByteString
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.LongField
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -38,7 +38,7 @@ const val SERIAL_NAME = "games.studiohummingbird.cultoftheancestormoth.serializa
 class FieldSerializer : KSerializer<Field> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(SERIAL_NAME) {
         element<FieldType>("fieldType")
-        element<FieldSize>("fieldSize")
+        element<UShort>("fieldSize")
         element<FieldValue>("fieldValue")
     }
 
@@ -50,8 +50,8 @@ class FieldSerializer : KSerializer<Field> {
             encodeSerializableElement(descriptor, 0, FieldType.serializer(), value.fieldType)
 
             val encodedFieldValue = PluginFormat.encodeToByteString(FieldValue.serializer(), value.fieldValue)
-            val fieldSize = FieldSize(encodedFieldValue.size)
-            encodeSerializableElement(descriptor, 1, FieldSize.serializer(), fieldSize)
+            val fieldSize = encodedFieldValue.size.toUShort()
+            encodeSerializableElement(descriptor, 1, UShort.serializer(), fieldSize)
 
             // currently double encoding, consider using encodedFieldvalue somehow
             encodeSerializableElement(descriptor, 2, FieldValue.serializer(), value.fieldValue)
@@ -66,8 +66,8 @@ class FieldSerializer : KSerializer<Field> {
                 println("encountered ${LongField.SERIAL_NAME}")
                 return@decodeStructure decodeSerializableElement(descriptor, 1, LongFieldSerializer).longField
             }
-            val fieldSize = decodeSerializableElement(descriptor, 1, FieldSize.serializer())
-            val byteString = decoder.decodeByteString(fieldSize.ushort.toInt())
+            val fieldSize = decodeSerializableElement(descriptor, 1, UShort.serializer())
+            val byteString = decoder.decodeByteString(fieldSize.toInt())
 
             Field(fieldType, fieldSize, FieldValue(byteString))
         }

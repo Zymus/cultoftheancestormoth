@@ -21,7 +21,7 @@ import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decod
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferEncoder
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
+import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.ByteStringStreamingDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GRUP
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
@@ -48,8 +48,7 @@ object PluginFormat : BinaryFormat, BufferFormat {
     }
 
     override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T {
-        val buffer = Buffer().apply { write(bytes) }
-        val decoder = BethesdaBufferDecoder(buffer, serializersModule, deserializer.descriptor)
+        val decoder = ByteStringStreamingDecoder(serializersModule, ByteString(bytes))
         val deserializedFromBytes = deserializer.deserialize(decoder)
         return deserializedFromBytes
 //            .also { println("${deserializer.descriptor} $it") }
@@ -213,12 +212,16 @@ object PluginFormat : BinaryFormat, BufferFormat {
         "VOLI"
     )
 
-    fun decodeMarkerSequenceFromByteString(byteString: ByteString): Sequence<StreamingToken>  {
+    fun decodeMarkerSequenceFromByteString(byteString: ByteString): Sequence<StreamingToken> {
+        val decoder = ByteStringStreamingDecoder(serializersModule, byteString)
         var sourcePosition = 0L
         return sequence {
             while (sourcePosition < byteString.size) {
                 val startPosition = sourcePosition
-                val type = decodeFromByteString(TypeTag.serializer(), byteString, sourcePosition.toInt(), 4)
+                println(startPosition)
+                val type = decoder.decodeSerializableValue(TypeTag.serializer())
+                println("typeLength ${type.string.length}")
+
                 sourcePosition += 4
 
                 val isGroup = type.string == GRUP.SERIAL_NAME
@@ -228,7 +231,13 @@ object PluginFormat : BinaryFormat, BufferFormat {
                 var elementSize: Long
 
                 if (isGroup) {
-                    elementSize = decodeFromByteString(GroupSize.serializer(), byteString, sourcePosition.toInt(), 4).uint.toLong()
+                    elementSize = decodeFromByteString(
+                        GroupSize.serializer(),
+                        byteString,
+                        sourcePosition.toInt(),
+                        4
+                    ).uint.toLong()
+
                     sourcePosition += 4
 
                     sourcePosition += 16
@@ -243,11 +252,23 @@ object PluginFormat : BinaryFormat, BufferFormat {
                         )
                     )
                 } else if (isRecord) {
-                    val recordSize = decodeFromByteString(RecordSize.serializer(), byteString, sourcePosition.toInt(), 4).int.toUInt().toLong()
+                    val recordSize = decodeFromByteString(
+                        RecordSize.serializer(),
+                        byteString,
+                        sourcePosition.toInt(),
+                        4
+                    ).int.toUInt().toLong()
+
                     elementSize = recordSize + 24
                     sourcePosition += 4
 
-                    val isDataCompressed = decodeFromByteString(Int.serializer(), byteString, sourcePosition.toInt(), 4) and 0x40000 == 0x40000
+                    val isDataCompressed: Boolean = decodeFromByteString(
+                        Int.serializer(),
+                        byteString,
+                        sourcePosition.toInt(),
+                        4
+                    ) and 0x40000 == 0x40000
+
                     sourcePosition += 4
 
                     sourcePosition += 12
@@ -257,28 +278,39 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     }
 
                     // position now ready to read field
-                    yield(StreamingToken(
-                        type,
-                        startPosition,
-                        elementSize,
-                        StreamingToken.Type.RECORD,
-                        isDataCompressed
-                    ))
+                    yield(
+                        StreamingToken(
+                            type,
+                            startPosition,
+                            elementSize,
+                            StreamingToken.Type.RECORD,
+                            isDataCompressed
+                        )
+                    )
                 } else if (isField) {
-                    val fieldSize = decodeFromByteString(FieldSize.serializer(), byteString, sourcePosition.toInt(), 2).ushort.toLong()
+                    val fieldSize: Long = decodeFromByteString(
+                        Short.serializer(),
+                        byteString,
+                        sourcePosition.toInt(),
+                        2
+                    ).toUShort().toLong()
+
                     elementSize = fieldSize + 6
                     sourcePosition += 2
 
-                    yield(StreamingToken(
-                        type,
-                        startPosition,
-                        elementSize,
-                        StreamingToken.Type.FIELD,
-                        false
-                    ))
+                    yield(
+                        StreamingToken(
+                            type,
+                            startPosition,
+                            elementSize,
+                            StreamingToken.Type.FIELD,
+                            false
+                        )
+                    )
 
                     if (type.string == "XXXX") {
                         val followingFieldSize = decodeFromByteString(UInt.serializer(), byteString, sourcePosition.toInt(), 4).toLong()
+
                         sourcePosition += 4
 
                         val followingFieldPosition = sourcePosition
@@ -308,6 +340,32 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     }
                 }
             }
+
+            // fieldsize inline
+            // js
+            // 1m 23.096s, 466ms, 6.768s, 5.514s, 27.522s, 0s, 0s
+            // 1m 23.039s, 450ms, 6.73s, 5.576s, 26.978s, 0s, 0s
+            // 1m 24.661s, 482ms, 6.769s, 5.636s, 27.452s, 0s, 0s
+            // jvm
+            // 1.696471530s, 11.727634ms, 215.929210ms, 226.309469ms, 589.155905ms, 32.297us, 2.2us
+            // 1.807724077s, 11.385516ms, 157.970618ms, 149.373956ms, 602.136577ms, 31.608us, 2.877us
+            // 1.621915260s, 12.156239ms, 177.644043ms, 292.651642ms, 846.020982ms, 52.201us, 2.114us
+            //
+            // fielsize ushort
+            // js
+            // 1m 21.355s, 465ms, 6.681s, 5.397s, 26.082s, 0s, 0s
+            // 1m 25.292s, 430ms, 6.89s, 5.607s, 26.98s, 0s, 0s
+            // 1m 23.742s, 436ms, 6.701s, 5.644s, 23.565s, 0s, 0s
+            // 1m 22.948s, 470ms, 6.684s, 5.514s, 22.708s, 0s, 0s
+            // jvm
+            // 1.649838320s, 12.630822ms, 182.123703ms, 163.819700ms, 797.389269ms, 36.982us, 2.073us
+            // 1.398357988s, 11.671792ms, 157.024320ms, 144.928280ms, 768.156098ms, 34.642us, 2.364us
+            // 1.690950099s, 10.988019ms, 154.176983ms, 146.981722ms, 705.293220ms, 29.137us, 1.959us
+
+            // dedicated inline buffer
+            // jvm
+            // 4387994, 50494, 869688, 3467813, 1.965857275s, 14.173881ms, 185.916601ms, 207.069730ms, 679.574765ms, 30.648us, 3.18us
+            // 4387994, 50494, 869688, 3467813, 1.250448790s, 14.536106ms, 180.673293ms, 150.030008ms, 705.009939ms, 52.755us, 3.453us
         }
     }
 
@@ -366,25 +424,29 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     }
 
                     // position now ready to read field
-                    yield(StreamingToken(
-                        type,
-                        startPosition,
-                        elementSize,
-                        StreamingToken.Type.RECORD,
-                        isDataCompressed
-                    ))
+                    yield(
+                        StreamingToken(
+                            type,
+                            startPosition,
+                            elementSize,
+                            StreamingToken.Type.RECORD,
+                            isDataCompressed
+                        )
+                    )
                 } else if (isField) {
-                    val fieldSize = decodeFromSource(FieldSize.serializer(), source).ushort.toLong()
+                    val fieldSize = decodeFromSource(UShort.serializer(), source).toLong()
                     elementSize = fieldSize + 6
                     sourcePosition += 2
 
-                    yield(StreamingToken(
-                        type,
-                        startPosition,
-                        elementSize,
-                        StreamingToken.Type.FIELD,
-                        false
-                    ))
+                    yield(
+                        StreamingToken(
+                            type,
+                            startPosition,
+                            elementSize,
+                            StreamingToken.Type.FIELD,
+                            false
+                        )
+                    )
 
                     if (type.string == "XXXX") {
                         val followingFieldSize = decodeFromSource(UInt.serializer(), source).toLong()

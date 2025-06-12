@@ -19,11 +19,11 @@ package games.studiohummingbird.cultoftheancestormoth.serialization
 
 import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteStringDecoder
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldType
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.FieldValue
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.LongField
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -33,10 +33,10 @@ import kotlinx.serialization.encoding.decodeStructure
 
 object LongFieldSerializer : KSerializer<LongField> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(LongField.SERIAL_NAME) {
-        element<FieldSize>("fieldSize")
+        element<UShort>("fieldSize")
         element<Int>("actualSize")
         element<FieldType>("fieldType")
-        element<FieldSize>("emptyFieldSize")
+        element<UShort>("emptyFieldSize")
         element<FieldValue>("value")
     }
 
@@ -50,10 +50,10 @@ object LongFieldSerializer : KSerializer<LongField> {
     override fun deserialize(decoder: Decoder): LongField {
         require(decoder is ByteStringDecoder)
         return decoder.decodeStructure(descriptor) {
-            val fieldSize = decodeSerializableElement(descriptor, 0, FieldSize.serializer())
+            val fieldSize = decodeSerializableElement(descriptor, 0, UShort.serializer())
             val actualSize = decodeIntElement(descriptor, 1)
             val fieldType = decodeSerializableElement(descriptor, 2, FieldType.serializer())
-            val emptyFieldSize = decodeSerializableElement(descriptor, 3, FieldSize.serializer())
+            val emptyFieldSize = decodeSerializableElement(descriptor, 3, UShort.serializer())
 
             val valueByteString = decoder.decodeByteString(actualSize)
             val value = FieldValue(valueByteString)
