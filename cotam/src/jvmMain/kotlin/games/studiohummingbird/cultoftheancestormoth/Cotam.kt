@@ -3,6 +3,7 @@ package games.studiohummingbird.cultoftheancestormoth
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 
 class Cotam : CliktCommand() {
@@ -12,8 +13,9 @@ class Cotam : CliktCommand() {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-fun main(args: Array<String>) =
+fun main(args: Array<String>) = runBlocking {
     mainLoad(args)
+}
 
 fun mainCotam(args: Array<String>) =
     Cotam().subcommands(

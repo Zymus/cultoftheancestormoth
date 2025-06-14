@@ -25,6 +25,7 @@ kotlin {
             implementation(libs.clikt)
             implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.coroutines.core)
             implementation(project(":serialization"))
             implementation(project(":bytestring-serializer"))
         }

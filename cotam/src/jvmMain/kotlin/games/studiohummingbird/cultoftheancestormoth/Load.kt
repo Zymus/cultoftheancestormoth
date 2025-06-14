@@ -24,9 +24,9 @@ import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decod
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
 import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginElementMarker
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginRecord
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginToken
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.StreamingToken
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -62,7 +62,7 @@ class Load : CliktCommand() {
         val transferByteString = bufferedMasterFile.readByteString()
         println(transferByteString.size)
 
-        var sequence: Sequence<StreamingToken>
+        var sequence: Sequence<PluginElementMarker>
 
         repeat(1) {
             measureTime {

@@ -25,7 +25,7 @@ import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.Byte
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GRUP
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.GroupSize
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.RecordSize
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.StreamingToken
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginElementMarker
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.recordValueModule
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
@@ -211,7 +211,7 @@ object PluginFormat : BinaryFormat, BufferFormat {
         "VOLI"
     )
 
-    fun decodeMarkerSequenceFromByteString(byteString: ByteString): Sequence<StreamingToken> {
+    fun decodeMarkerSequenceFromByteString(byteString: ByteString): Sequence<PluginElementMarker> {
         var sourcePosition = 0L
         return sequence {
             while (sourcePosition < byteString.size) {
@@ -239,11 +239,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     sourcePosition += 16
 
                     yield(
-                        StreamingToken(
+                        PluginElementMarker(
                             type,
                             startPosition,
                             elementSize,
-                            StreamingToken.Type.GROUP,
+                            PluginElementMarker.Type.GROUP,
                             false
                         )
                     )
@@ -278,11 +278,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
 
                     // position now ready to read field
                     yield(
-                        StreamingToken(
+                        PluginElementMarker(
                             type,
                             startPosition,
                             elementSize,
-                            StreamingToken.Type.RECORD,
+                            PluginElementMarker.Type.RECORD,
                             isDataCompressed
                         )
                     )
@@ -298,11 +298,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     sourcePosition += 2
 
                     yield(
-                        StreamingToken(
+                        PluginElementMarker(
                             type,
                             startPosition,
                             elementSize,
-                            StreamingToken.Type.FIELD,
+                            PluginElementMarker.Type.FIELD,
                             false
                         )
                     )
@@ -325,11 +325,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
                         sourcePosition += followingFieldSize
 
                         yield(
-                            StreamingToken(
+                            PluginElementMarker(
                                 followingFieldType,
                                 skip = followingFieldPosition,
                                 size = elementSize,
-                                StreamingToken.Type.FIELD,
+                                PluginElementMarker.Type.FIELD,
                                 false
                             )
                         )
@@ -368,7 +368,7 @@ object PluginFormat : BinaryFormat, BufferFormat {
         }
     }
 
-    fun decodeMarkerSequenceFromSource(source: Source): Sequence<StreamingToken> {
+    fun decodeMarkerSequenceFromSource(source: Source): Sequence<PluginElementMarker> {
         // [TES4][54][54 bytes]
         // [24 Bytes][54 bytes]
         // 0: TES4, skip = 0, size = 78 (54 + 24)
@@ -398,11 +398,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     sourcePosition += 16
 
                     yield(
-                        StreamingToken(
+                        PluginElementMarker(
                             type,
                             startPosition,
                             elementSize,
-                            StreamingToken.Type.GROUP,
+                            PluginElementMarker.Type.GROUP,
                             false
                         )
                     )
@@ -424,11 +424,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
 
                     // position now ready to read field
                     yield(
-                        StreamingToken(
+                        PluginElementMarker(
                             type,
                             startPosition,
                             elementSize,
-                            StreamingToken.Type.RECORD,
+                            PluginElementMarker.Type.RECORD,
                             isDataCompressed
                         )
                     )
@@ -438,11 +438,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
                     sourcePosition += 2
 
                     yield(
-                        StreamingToken(
+                        PluginElementMarker(
                             type,
                             startPosition,
                             elementSize,
-                            StreamingToken.Type.FIELD,
+                            PluginElementMarker.Type.FIELD,
                             false
                         )
                     )
@@ -466,11 +466,11 @@ object PluginFormat : BinaryFormat, BufferFormat {
                         sourcePosition += followingFieldSize
 
                         yield(
-                            StreamingToken(
+                            PluginElementMarker(
                                 followingFieldType,
                                 skip = followingFieldPosition,
                                 size = elementSize,
-                                StreamingToken.Type.FIELD,
+                                PluginElementMarker.Type.FIELD,
                                 false
                             )
                         )

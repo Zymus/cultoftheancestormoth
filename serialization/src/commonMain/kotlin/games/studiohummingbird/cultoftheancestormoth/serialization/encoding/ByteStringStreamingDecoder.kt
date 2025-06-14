@@ -21,11 +21,11 @@ import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.ByteS
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.fixedLength
 import games.studiohummingbird.cultoftheancestormoth.serialization.annotations.isFixedLength
 import kotlinx.io.bytestring.ByteString
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.encoding.Decoder
@@ -37,7 +37,7 @@ class ByteStringStreamingDecoder(
     private val byteString: ByteString,
     private val startIndex: Int = 0,
     private val endIndex: Int = byteString.size,
-) : AbstractDecoder(), ByteStringDecoder {
+) : Decoder, CompositeDecoder, ByteStringDecoder {
 
     private var offset: Int = 0
     private var structureElementIndex: Int = 0
@@ -57,10 +57,40 @@ class ByteStringStreamingDecoder(
         }
     }
 
+    override fun decodeBoolean(): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun endStructure(descriptor: SerialDescriptor) {
         structureElementIndex++
         serialDescriptorStack.removeFirst()
     }
+
+    override fun decodeBooleanElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun decodeByteElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Byte =
+        decodeByte()
+
+    override fun decodeCharElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Char {
+        TODO("Not yet implemented")
+    }
+
+    override fun decodeDoubleElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Double =
+        decodeDouble()
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         return when (descriptor.kind) {
@@ -84,6 +114,65 @@ class ByteStringStreamingDecoder(
 
             else -> structureElementIndex++
         }
+    }
+
+    override fun decodeFloatElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Float =
+        decodeFloat()
+
+    override fun decodeInlineElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Decoder =
+        decodeInline(descriptor)
+
+    override fun decodeIntElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Int =
+        decodeInt()
+
+    override fun decodeLongElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Long =
+        decodeLong()
+
+    @ExperimentalSerializationApi
+    override fun <T : Any> decodeNullableSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T?>,
+        previousValue: T?
+    ): T? {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T> decodeSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T>,
+        previousValue: T?
+    ): T =
+        deserializer.deserialize(this)
+
+    override fun decodeShortElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): Short =
+        decodeShort()
+
+    override fun decodeStringElement(
+        descriptor: SerialDescriptor,
+        index: Int
+    ): String {
+        val stringLength: Int =
+            if (descriptor.kind == PolymorphicKind.OPEN) { 4 }
+            else { remaining }
+
+        return decodeString(stringLength)
     }
 
     override fun decodeInline(descriptor: SerialDescriptor): Decoder {
@@ -120,6 +209,10 @@ class ByteStringStreamingDecoder(
     override fun decodeByte(): Byte =
         decodeMaskedByte().toByte()
 
+    override fun decodeChar(): Char {
+        TODO("Not yet implemented")
+    }
+
     override fun decodeShort(): Short =
         decodeMaskedShort().toShort()
 
@@ -129,18 +222,30 @@ class ByteStringStreamingDecoder(
     override fun decodeLong(): Long =
         decodeMaskedLong().toLong()
 
+    @ExperimentalSerializationApi
+    override fun decodeNotNullMark(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    @ExperimentalSerializationApi
+    override fun decodeNull(): Nothing? {
+        TODO("Not yet implemented")
+    }
+
     override fun decodeFloat(): Float =
         Float.fromBits(decodeInt())
 
     override fun decodeDouble(): Double =
         Double.fromBits(decodeLong())
 
-    override fun decodeString(): String {
-        val structureDescriptor = serialDescriptorStack.firstOrNull()
-        val stringLength: Int =
-            if (structureDescriptor?.kind == PolymorphicKind.OPEN) { 4 }
-            else { remaining }
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        TODO("Not yet implemented")
+    }
 
+    override fun decodeString(): String =
+        decodeString(remaining)
+
+    private fun decodeString(stringLength: Int): String {
         val builder = StringBuilder(stringLength)
         repeat(stringLength) {
             builder.append(decodeByte().toInt().toChar())
@@ -197,9 +302,9 @@ class ByteStringStreamingDecoder(
     }
 
     companion object {
-        private const val BYTE_MASK = 0xFF
-        private const val SHORT_MASK = 0xFF_FF
-        private const val INT_MASK = 0xFF_FF_FF_FF
-        private const val LONG_MASK = 0xFF_FF_FF_FF_FF_FF_FF_FFu
+        private const val BYTE_MASK = 0x000000FF
+        private const val SHORT_MASK = 0x0000FFFF
+        private const val INT_MASK = 0x00000000_FFFFFFFF
+        private const val LONG_MASK = 0xFFFFFFFF_FFFFFFFFu
     }
 }

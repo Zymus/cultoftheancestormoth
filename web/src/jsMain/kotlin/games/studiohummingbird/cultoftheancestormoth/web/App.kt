@@ -44,6 +44,11 @@ val App = FC<Props> {
                 Not that there's anything freaky, just a lot of bare wires, so be careful.
             """.trimIndent()
         }
+        p {
+            +"""
+                Licensed under the GNU Affero General Public License v3.0 or later.
+            """.trimIndent()
+        }
 //    div {
 //        h2 { +"The example mod contains the following records" }
 //        ul {
