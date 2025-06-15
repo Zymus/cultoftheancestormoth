@@ -17,26 +17,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package games.studiohummingbird.cultoftheancestormoth.web
 
-import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
 import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
-import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.NullTerminatedString
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Fields
 import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginElementMarker
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginRecord
-import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.PluginToken
 import js.buffer.ArrayBuffer
 import js.typedarrays.Int8Array
 import kotlinx.coroutines.delay
 import kotlinx.io.bytestring.ByteString
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.PolymorphicSerializer
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.progress
+import react.dom.html.ReactHTML.select
 import react.useEffect
 import react.useState
 import web.events.EventHandler
@@ -50,6 +46,8 @@ val PluginViewer = FC<Props> { props ->
     val (byteString, setByteString) = useState(ByteString())
     val (elementMarkers, setElementMarkers) = useState<List<PluginElementMarker>>(emptyList())
     val (lastElementMarkerRead, setLastElementMarkerRead) = useState<PluginElementMarker>()
+    val (typeTags, setTypeTags) = useState<List<Pair<String, Int>>>(emptyList())
+    val (selectedTypeTag, setSelectedTypeTag) = useState<String>()
 
     useEffect(byteString, setElementMarkers, setLastElementMarkerRead) {
         val elementMarkerSequence: Sequence<PluginElementMarker> =
@@ -71,43 +69,15 @@ val PluginViewer = FC<Props> { props ->
         setElementMarkers(tokenList)
     }
 
-    useEffect(elementMarkers) {
-        val groupsToRead = listOf(
-            "COBJ",
-            "ALCH"
-        )
+    useEffect(elementMarkers, setTypeTags) {
+        val typeTags = elementMarkers
+            .filter { it.type == PluginElementMarker.Type.RECORD && !it.isDataCompressed }
+            .groupBy { it.tag.string }
+            .map { it.key to it.value.count() }
+            .toList()
 
-        groupsToRead.forEach { groupToRead ->
-            measureTime {
-                elementMarkers
-                    .filter { marker -> marker.tag.string == groupToRead }
-                    .map { marker ->
-                        PluginFormat.decodeFromByteString(
-                            PolymorphicSerializer(PluginToken::class),
-                            byteString,
-                            marker.skip.toInt(),
-                            marker.size.toInt()
-                        )
-                    }
-                    .map { token ->
-                        when (token) {
-                            is PluginRecord -> token.fields as Fields
-                            else -> TODO()
-                        }
-                    }
-                    .flatMap { it.list }
-                    .filter { it.fieldType.typeTag.string == "EDID" }
-                    .map {
-                        PluginFormat.decodeFromByteString(
-                            NullTerminatedString.serializer(),
-                            it.fieldValue.value
-                        ).string
-                    }
-                    .forEach(::println)
-            }.also {
-                println("$groupToRead $it")
-            }
-        }
+        setTypeTags(typeTags)
+        setSelectedTypeTag(typeTags.first().first)
     }
 
     form {
@@ -156,12 +126,27 @@ val PluginViewer = FC<Props> { props ->
             }
         }
 
-        PluginFC {
-            name = "Skyrim.esm"
+        select {
+            name = "selectedTypeTag"
+            value = selectedTypeTag ?: ""
+            onChange = { event ->
+                val value = event.target.value
+                console.log(value)
+                setSelectedTypeTag(value)
+            }
+
+            typeTags
+                .forEach {
+                option {
+                    +"${it.first} (Count: ${it.second})"
+                    value = it.first
+                }
+            }
         }
+
         ElementMarkerList {
             this.byteString = byteString
-            pluginElementMarkers = elementMarkers
+            pluginElementMarkers = elementMarkers.filter { it.tag.string == selectedTypeTag }
         }
     }
 }

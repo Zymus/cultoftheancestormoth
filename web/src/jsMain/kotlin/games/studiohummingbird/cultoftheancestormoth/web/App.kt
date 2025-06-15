@@ -49,6 +49,12 @@ val App = FC<Props> {
                 Licensed under the GNU Affero General Public License v3.0 or later.
             """.trimIndent()
         }
+        p {
+            +"""
+                All interactions are solely within your browser. There is no server that your files are uploaded to.
+                The only network requests should be the ones required to load the HTML, CSS and JavaScript.
+            """.trimIndent()
+        }
 //    div {
 //        h2 { +"The example mod contains the following records" }
 //        ul {

@@ -37,7 +37,20 @@ data class PluginElementMarker(
     }
 }
 
+data class GroupElementMarket(
+    val skip: Long,
+    val size: Long,
+)
 
+data class RecordElementMarket(
+    val skip: Long,
+    val size: Long,
+)
+
+data class FieldElementMarket(
+    val skip: Long,
+    val size: Long,
+)
 
 
 //TypeTag TES4 recordSize 54 78
