@@ -38,6 +38,7 @@ import react.useState
 import web.events.EventHandler
 import web.file.FileReader
 import web.html.InputType.Companion.file
+import kotlin.time.Duration
 import kotlin.time.measureTime
 
 @ExperimentalSerializationApi
@@ -48,8 +49,9 @@ val PluginViewer = FC<Props> { props ->
     val (lastElementMarkerRead, setLastElementMarkerRead) = useState<PluginElementMarker>()
     val (typeTags, setTypeTags) = useState<List<Pair<String, Int>>>(emptyList())
     val (selectedTypeTag, setSelectedTypeTag) = useState<String>()
+    val (scrollReadTime, setScrollReadTime) = useState(Duration.ZERO)
 
-    useEffect(byteString, setElementMarkers, setLastElementMarkerRead) {
+    useEffect(byteString, setScrollReadTime, setLastElementMarkerRead, setElementMarkers) {
         val elementMarkerSequence: Sequence<PluginElementMarker> =
             PluginFormat.decodeMarkerSequenceFromByteString(byteString)
 
@@ -64,8 +66,7 @@ val PluginViewer = FC<Props> { props ->
                 }
         }
 
-        println("toList time $toListTime ${tokenList.size}")
-
+        setScrollReadTime(toListTime)
         setElementMarkers(tokenList)
     }
 
@@ -115,38 +116,43 @@ val PluginViewer = FC<Props> { props ->
         }
 
         val loadingProgressId = "loading-progress"
-        val loadingProgressLabel = "Reading scroll"
-        label {
-            +loadingProgressLabel
-            hidden = byteString.size == 0
-            progress {
-                id = loadingProgressId
-                max = byteString.size.toDouble()
-                value = lastElementMarkerRead?.skip ?: 0
-            }
-        }
+        val loadingProgressLabel = "Time to read Scroll: $scrollReadTime"
 
-        select {
-            name = "selectedTypeTag"
-            value = selectedTypeTag ?: ""
-            onChange = { event ->
-                val value = event.target.value
-                console.log(value)
-                setSelectedTypeTag(value)
-            }
-
-            typeTags
-                .forEach {
-                option {
-                    +"${it.first} (Count: ${it.second})"
-                    value = it.first
+        ByteStringContext {
+            value = byteString
+            label {
+                +loadingProgressLabel
+                progress {
+                    id = loadingProgressId
+                    max = byteString.size.toDouble()
+                    value = lastElementMarkerRead?.skip ?: 0
                 }
             }
-        }
 
-        ElementMarkerList {
-            this.byteString = byteString
-            pluginElementMarkers = elementMarkers.filter { it.tag.string == selectedTypeTag }
+            label {
+                +"Selected element type"
+                select {
+                    name = "selectedTypeTag"
+                    value = selectedTypeTag ?: ""
+                    onChange = { event ->
+                        val value = event.target.value
+                        console.log(value)
+                        setSelectedTypeTag(value)
+                    }
+
+                    typeTags
+                        .forEach {
+                            option {
+                                +"${it.first} (Count: ${it.second})"
+                                value = it.first
+                            }
+                        }
+                }
+            }
+
+            ElementMarkerList {
+                pluginElementMarkers = elementMarkers.filter { it.tag.string == selectedTypeTag }
+            }
         }
     }
 }
