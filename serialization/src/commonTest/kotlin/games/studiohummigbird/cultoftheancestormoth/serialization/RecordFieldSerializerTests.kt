@@ -1,0 +1,59 @@
+/**
+Cult of the Ancestor Moth (RecordFieldSerializerTests.kt)
+Copyright (C) 2025  Zymus (moore.zyle@gmail.com)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package games.studiohummigbird.cultoftheancestormoth.serialization
+
+import games.studiohummingbird.cultoftheancestormoth.bytestring.serializer.decodeFromByteString
+import games.studiohummingbird.cultoftheancestormoth.serialization.PluginFormat
+import games.studiohummingbird.cultoftheancestormoth.serialization.datatypes.TypeTag
+import games.studiohummingbird.cultoftheancestormoth.serialization.encoding.BethesdaBufferDecoder
+import games.studiohummingbird.cultoftheancestormoth.serialization.polymorphicPrimitiveModule
+import games.studiohummingbird.cultoftheancestormoth.serialization.tokens.Field
+import kotlinx.io.Buffer
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
+import kotlinx.io.writeString
+import kotlinx.io.writeUShortLe
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+@ExperimentalStdlibApi
+@ExperimentalSerializationApi
+class RecordFieldSerializerTests {
+
+    @Test
+    fun `deserialize`() {
+        val typeTag = TypeTag("DATA")
+        val fieldSize: UShort = 4.toUShort()
+        val intValue = 26
+        val buffer = Buffer().apply {
+            writeString(typeTag.string)
+            writeUShortLe(fieldSize)
+            writeIntLe(intValue)
+        }
+        val source: Source = buffer
+        val serializer = Field.serializer()
+        val decoder = BethesdaBufferDecoder(source, polymorphicPrimitiveModule, serializer.descriptor)
+
+        val deserialized = serializer.deserialize(decoder)
+
+        assertEquals(typeTag, deserialized.fieldType.typeTag)
+        assertEquals(fieldSize, deserialized.fieldSize)
+        assertEquals(intValue, PluginFormat.decodeFromByteString(deserialized.fieldValue.value))
+    }
+}

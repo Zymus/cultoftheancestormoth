@@ -1,0 +1,7 @@
+pr:
+
+stages:
+  - jobs:
+      - steps:
+          - pwsh:
+              Write-Host something

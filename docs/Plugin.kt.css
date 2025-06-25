@@ -1,0 +1,8 @@
+.plugin-sandbox {
+    display: flex;
+}
+
+.plugin-sandbox > div {
+    flex: 1;
+    border: 1px solid white;
+}

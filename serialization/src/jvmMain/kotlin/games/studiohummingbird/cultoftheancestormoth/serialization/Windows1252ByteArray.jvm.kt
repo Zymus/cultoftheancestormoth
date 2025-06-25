@@ -1,5 +1,6 @@
 package games.studiohummingbird.cultoftheancestormoth.serialization
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import java.nio.charset.Charset
 
 /**
@@ -7,11 +8,8 @@ import java.nio.charset.Charset
  */
 val WINDOWS_1252: Charset = Charset.forName(WINDOWS_1252_CHARSET_NAME)
 
-actual fun ByteArray.fromWindows1252ByteArray(): String =
+actual fun ByteArray.decodeWindows1252String(): String =
     toString(WINDOWS_1252)
 
-actual fun BethesdaBufferEncoder.encodeWindows1252String(
-    value: String
-) {
-    encodeBytes(value.toByteArray(WINDOWS_1252))
-}
+actual fun String.toWindows1252ByteArray(): ByteArray =
+    toByteArray(WINDOWS_1252)

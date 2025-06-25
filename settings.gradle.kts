@@ -1,8 +1,10 @@
 rootProject.name = "cultoftheancestormoth"
 
 include(
+    ":bytestring-serializer",
     ":cotam",
-    ":model",
     ":serialization",
+    ":serialization-html",
+    ":terraform:azure-devops-project",
     ":web"
 )
